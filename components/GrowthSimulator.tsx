@@ -93,6 +93,31 @@ export function GrowthSimulator() {
     };
   }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct, lumpSum, inflationAdjusted]);
 
+  // Timeline breakdown showing growth at key milestones
+  const timelineBreakdown = useMemo(() => {
+    const milestones = [5, 10, 15, 20, 25, 30, 40, 50].filter(year => year <= horizonYears);
+    if (!milestones.includes(horizonYears)) {
+      milestones.push(horizonYears);
+    }
+    milestones.sort((a, b) => a - b);
+
+    return milestones.map(year => {
+      const netIncome = computeNetIncome(income, deductionPct);
+      const splitAmounts = computeSplitAmounts(netIncome, split);
+      const savingsMonthly = splitAmounts.savings;
+      const baseRate = manualRatePct ?? assetRate.cagrPct ?? 0;
+      const inflationRate = inflationAdjusted ? 3.5 : 0;
+      const effectiveRate = Math.max(baseRate - inflationRate, 0);
+      const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, year, lumpSum);
+      return {
+        year,
+        futureValue: growth.futureValue,
+        principal: growth.principal,
+        interest: growth.interest,
+      };
+    });
+  }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct, lumpSum, inflationAdjusted]);
+
   if (income === 0) {
     return (
       <Animated.View className="gap-5 p-4 bg-neutral-900 rounded-2xl" entering={FadeIn.duration(300)}>
@@ -194,7 +219,34 @@ export function GrowthSimulator() {
         <Text className="text-3xl font-semibold text-white">₱{formatNumber(derived.growth.futureValue)}</Text>
         <Text className="text-sm text-neutral-400">
           Based on monthly savings ₱{formatNumber(derived.savingsMonthly)} at {derived.effectiveRate}% annual
+          {derived.inflationRate > 0 && " (inflation-adjusted)"}
         </Text>
+        {lumpSum > 0 && (
+          <Text className="text-xs text-neutral-400">+ Starting lump sum ₱{formatNumber(lumpSum)}</Text>
+        )}
+      </View>
+
+      {/* Timeline Breakdown */}
+      <View className="gap-3">
+        <Text className="text-sm font-semibold text-neutral-300">Growth Timeline</Text>
+        <View className="gap-2">
+          {timelineBreakdown.map((milestone, index) => (
+            <Animated.View
+              key={milestone.year}
+              entering={FadeIn.duration(300).delay(index * 50)}
+              className="flex-row items-center justify-between p-3 bg-neutral-800 rounded-xl"
+            >
+              <View className="gap-1">
+                <Text className="text-base font-semibold text-white">Year {milestone.year}</Text>
+                <View className="flex-row gap-2">
+                  <Text className="text-xs text-emerald-400">₱{formatNumber(milestone.principal)} saved</Text>
+                  <Text className="text-xs text-amber-400">+ ₱{formatNumber(milestone.interest)} interest</Text>
+                </View>
+              </View>
+              <Text className="text-lg font-bold text-white">₱{formatNumber(milestone.futureValue)}</Text>
+            </Animated.View>
+          ))}
+        </View>
       </View>
     </Animated.View>
   );
