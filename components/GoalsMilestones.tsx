@@ -83,7 +83,7 @@ export function GoalsMilestones() {
               key={milestone.threshold}
               entering={FadeIn.duration(400).delay(index * 50)}
               className={`rounded-2xl p-5 ${
-                isAchieved ? "bg-gradient-to-r from-emerald-900/40 to-emerald-800/40 border-2 border-emerald-500/50" : "bg-neutral-900 border border-neutral-800"
+                isAchieved ? "bg-emerald-900/40 border-2 border-emerald-500/50" : "bg-neutral-900 border border-neutral-800"
               }`}
             >
               <View className="flex-row items-start gap-4">
@@ -159,7 +159,7 @@ export function GoalsMilestones() {
 
       {achievedCount === MILESTONES.length && (
         <Animated.View
-          className="p-6 mt-6 border-2 bg-gradient-to-r from-emerald-900/40 to-amber-900/40 rounded-2xl border-emerald-500/50"
+          className="p-6 mt-6 border-2 bg-emerald-900/30 rounded-2xl border-emerald-500/50"
           entering={FadeIn.duration(400).delay(500)}
         >
           <Text className="mb-2 text-3xl text-center">🎉</Text>

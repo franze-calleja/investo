@@ -1,7 +1,7 @@
 import Slider from "@react-native-community/slider";
 import * as Haptics from "expo-haptics";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Dimensions, Switch, Text, View } from "react-native";
+import { Dimensions, Pressable, Switch, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import Animated, { FadeIn, useSharedValue } from "react-native-reanimated";
 import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
@@ -26,6 +26,10 @@ export function GrowthSimulator() {
   const lumpSum = useInvestmentStore((state) => state.lumpSum);
   const inflationAdjusted = useInvestmentStore((state) => state.inflationAdjusted);
   const setInflationAdjusted = useInvestmentStore((state) => state.setInflationAdjusted);
+  const comparisonEnabled = useInvestmentStore((state) => state.comparisonEnabled);
+  const comparisonRate = useInvestmentStore((state) => state.comparisonRate);
+  const setComparisonEnabled = useInvestmentStore((state) => state.setComparisonEnabled);
+  const setComparisonRate = useInvestmentStore((state) => state.setComparisonRate);
 
   const handleHorizonChange = useCallback((value: number) => {
     const rounded = Math.round(value);
@@ -67,32 +71,49 @@ export function GrowthSimulator() {
   const chartData = useMemo(() => {
     const years = Math.min(horizonYears, 20); // Show max 20 points for readability
     const increment = horizonYears > 20 ? Math.ceil(horizonYears / 20) : 1;
-    const points: number[] = [];
+    const mainPoints: number[] = [];
+    const comparisonPoints: number[] = [];
     const labels: string[] = [];
 
     for (let year = 0; year <= horizonYears; year += increment) {
       const netIncome = computeNetIncome(income, deductionPct);
       const splitAmounts = computeSplitAmounts(netIncome, split);
       const savingsMonthly = splitAmounts.savings;
+      
+      // Main scenario
       const baseRate = manualRatePct ?? assetRate.cagrPct ?? 0;
       const inflationRate = inflationAdjusted ? 3.5 : 0;
       const effectiveRate = Math.max(baseRate - inflationRate, 0);
       const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, year, lumpSum);
-      points.push(growth.futureValue);
+      mainPoints.push(growth.futureValue);
+      
+      // Comparison scenario
+      if (comparisonEnabled) {
+        const compGrowth = computeFutureValueMonthly(savingsMonthly, comparisonRate, year, lumpSum);
+        comparisonPoints.push(compGrowth.futureValue);
+      }
+      
       labels.push(year % 5 === 0 ? `${year}y` : "");
     }
 
-    return {
-      labels,
-      datasets: [
-        {
-          data: points,
-          color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
-          strokeWidth: 3,
-        },
-      ],
-    };
-  }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct, lumpSum, inflationAdjusted]);
+    const datasets = [
+      {
+        data: mainPoints,
+        color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
+        strokeWidth: 3,
+      },
+    ];
+
+    if (comparisonEnabled && comparisonPoints.length > 0) {
+      datasets.push({
+        data: comparisonPoints,
+        color: (opacity = 1) => `rgba(251, 146, 60, ${opacity})`,
+        strokeWidth: 3,
+      });
+    }
+
+    return { labels, datasets };
+  }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct, lumpSum, inflationAdjusted, comparisonEnabled, comparisonRate]);
 
   // Timeline breakdown showing growth at key milestones
   const timelineBreakdown = useMemo(() => {
@@ -158,6 +179,81 @@ export function GrowthSimulator() {
         />
       </View>
 
+      {/* Comparison Mode Toggle */}
+      <View className="flex-row items-center justify-between bg-neutral-800 rounded-xl px-4 py-3">
+        <View className="flex-1 gap-1">
+          <Text className="text-white font-semibold">Compare Scenarios</Text>
+          <Text className="text-neutral-400 text-xs">See side-by-side growth comparison</Text>
+        </View>
+        <Switch
+          value={comparisonEnabled}
+          onValueChange={(value) => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setComparisonEnabled(value);
+          }}
+          trackColor={{ false: "#1f2937", true: "#fb923c" }}
+          thumbColor={comparisonEnabled ? "#fff" : "#9ca3af"}
+        />
+      </View>
+
+      {/* Comparison Rate Input (shown when comparison is enabled) */}
+      {comparisonEnabled && (
+        <Animated.View entering={FadeIn.duration(300)} className="gap-3">
+          <Text className="text-neutral-300 font-semibold">Comparison Rate (%)</Text>
+          <View className="flex-row gap-2">
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setComparisonRate(1);
+              }}
+              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 1 ? 'bg-orange-500' : 'bg-neutral-800'}`}
+            >
+              <Text className={`text-center font-semibold ${comparisonRate === 1 ? 'text-white' : 'text-neutral-400'}`}>
+                Bank 1%
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setComparisonRate(3.5);
+              }}
+              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 3.5 ? 'bg-orange-500' : 'bg-neutral-800'}`}
+            >
+              <Text className={`text-center font-semibold ${comparisonRate === 3.5 ? 'text-white' : 'text-neutral-400'}`}>
+                Inflation 3.5%
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setComparisonRate(5);
+              }}
+              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 5 ? 'bg-orange-500' : 'bg-neutral-800'}`}
+            >
+              <Text className={`text-center font-semibold ${comparisonRate === 5 ? 'text-white' : 'text-neutral-400'}`}>
+                Bonds 5%
+              </Text>
+            </Pressable>
+          </View>
+          <View className="flex-row items-center gap-3 bg-neutral-800 rounded-xl px-4 py-3">
+            <Text className="text-white font-semibold">Custom:</Text>
+            <Slider
+              value={comparisonRate}
+              onValueChange={(value) => setComparisonRate(Number(value.toFixed(1)))}
+              onSlidingComplete={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+              minimumValue={0}
+              maximumValue={20}
+              step={0.1}
+              minimumTrackTintColor="#fb923c"
+              maximumTrackTintColor="#1f2937"
+              thumbTintColor="#fb923c"
+              style={{ flex: 1 }}
+            />
+            <Text className="text-orange-400 font-bold text-lg w-16 text-right">{comparisonRate.toFixed(1)}%</Text>
+          </View>
+        </Animated.View>
+      )}
+
       <View className="gap-2">
         <View className="flex-row items-center justify-between">
           <Text className="text-neutral-300">Horizon (years)</Text>
@@ -180,6 +276,18 @@ export function GrowthSimulator() {
 
       {/* Line Chart */}
       <Animated.View className="items-center" entering={FadeIn.duration(300)}>
+        {comparisonEnabled && (
+          <View className="flex-row gap-4 mb-2 px-4">
+            <View className="flex-row items-center gap-2">
+              <View className="w-4 h-4 rounded-full bg-emerald-500" />
+              <Text className="text-xs text-neutral-400">Main ({derived.effectiveRate.toFixed(1)}%)</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <View className="w-4 h-4 rounded-full bg-orange-400" />
+              <Text className="text-xs text-neutral-400">Compare ({comparisonRate.toFixed(1)}%)</Text>
+            </View>
+          </View>
+        )}
         <LineChart
           data={chartData}
           width={Dimensions.get("window").width - 64}
@@ -219,6 +327,22 @@ export function GrowthSimulator() {
           fromZero={true}
         />
       </Animated.View>
+
+      {/* Comparison Difference Display */}
+      {comparisonEnabled && (
+        <Animated.View entering={FadeIn.duration(300)} className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-2xl gap-2">
+          <Text className="text-sm font-semibold text-amber-400">Opportunity Gap</Text>
+          <Text className="text-2xl font-bold text-white">
+            ₱{formatNumber(Math.abs(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue))}
+          </Text>
+          <Text className="text-xs text-neutral-400">
+            {derived.effectiveRate > comparisonRate 
+              ? `You'd earn ₱${formatNumber(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue)} MORE with your main scenario`
+              : `You'd earn ₱${formatNumber(computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue - derived.growth.futureValue)} MORE with the comparison scenario`
+            }
+          </Text>
+        </Animated.View>
+      )}
 
       <View className="gap-2">
         <Text className="text-sm text-neutral-300">Principal vs Interest</Text>

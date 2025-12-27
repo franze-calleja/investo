@@ -24,6 +24,8 @@ type InvestmentState = {
   assetRate: AssetRate;
   lumpSum: number;
   inflationAdjusted: boolean;
+  comparisonEnabled: boolean;
+  comparisonRate: number;
 };
 
 type InvestmentActions = {
@@ -36,6 +38,8 @@ type InvestmentActions = {
   setAssetRate: (value: AssetRate) => void;
   setLumpSum: (value: number) => void;
   setInflationAdjusted: (value: boolean) => void;
+  setComparisonEnabled: (value: boolean) => void;
+  setComparisonRate: (value: number) => void;
 };
 
 type InvestmentStore = InvestmentState & InvestmentActions;
@@ -78,6 +82,8 @@ export const useInvestmentStore = create<InvestmentStore>()(
       assetRate: { symbol: "SPX", cagrPct: null, source: undefined },
       lumpSum: 0,
       inflationAdjusted: false,
+      comparisonEnabled: false,
+      comparisonRate: 1,
 
       setIncome: (value) => set({ income: Math.max(0, value) }),
       setDeductionPct: (value) => set({ deductionPct: clamp(value, 0, 60) }),
@@ -90,7 +96,9 @@ export const useInvestmentStore = create<InvestmentStore>()(
       setManualRatePct: (value) => set({ manualRatePct: value === null ? null : Math.max(0, value) }),
       setAssetRate: (value) => set({ assetRate: value }),
       setLumpSum: (value) => set({ lumpSum: Math.max(0, value) }),
-      setInflationAdjusted: (value) => set({ inflationAdjusted: value })
+      setInflationAdjusted: (value) => set({ inflationAdjusted: value }),
+      setComparisonEnabled: (value) => set({ comparisonEnabled: value }),
+      setComparisonRate: (value) => set({ comparisonRate: Math.max(0, value) })
     }),
     {
       name: "investo-storage",
