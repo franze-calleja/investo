@@ -11,9 +11,10 @@ interface IncomeKeypadProps {
   onClose: () => void;
   onSubmit: (value: number) => void;
   initialValue?: number;
+  title?: string;
 }
 
-export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0 }: IncomeKeypadProps) {
+export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0, title = "Monthly Income" }: IncomeKeypadProps) {
   const [value, setValue] = useState(initialValue.toString());
   const submitScale = useSharedValue(1);
 
@@ -48,27 +49,27 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0 }: I
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <Animated.View className="flex-1 justify-end bg-black/50" entering={FadeIn.duration(10)}>
-        <Animated.View className="bg-neutral-900 rounded-t-3xl p-6 gap-6" entering={SlideInDown.springify().damping(40).stiffness(150)}>
+      <Animated.View className="justify-end flex-1 bg-black/50" entering={FadeIn.duration(10)}>
+        <Animated.View className="gap-6 p-6 bg-neutral-900 rounded-t-3xl" entering={SlideInDown.springify().damping(40).stiffness(150)}>
           {/* Header */}
           <View className="flex-row items-center justify-between">
-            <Text className="text-white text-xl font-bold">Monthly Income</Text>
+            <Text className="text-xl font-bold text-white">{title}</Text>
             <Pressable onPress={onClose}>
               <Ionicons name="close" size={28} color="#a3a3a3" />
             </Pressable>
           </View>
 
           {/* Display */}
-          <View className="bg-neutral-800 rounded-2xl p-6">
-            <Text className="text-neutral-400 text-sm mb-2">Amount</Text>
-            <Text className="text-white text-4xl font-bold">
+          <View className="p-6 bg-neutral-800 rounded-2xl">
+            <Text className="mb-2 text-sm text-neutral-400">Amount</Text>
+            <Text className="text-4xl font-bold text-white">
               ₱{value || "0"}
             </Text>
             {isVeryHigh && (
-              <Text className="text-amber-400 text-xs mt-2">⚠️ That's quite high! Double check your amount</Text>
+              <Text className="mt-2 text-xs text-amber-400">⚠️ That's quite high! Double check your amount</Text>
             )}
             {isVeryLow && (
-              <Text className="text-orange-400 text-xs mt-2">💡 Tip: Even small amounts can grow over time</Text>
+              <Text className="mt-2 text-xs text-orange-400">💡 Tip: Even small amounts can grow over time</Text>
             )}
           </View>
 
@@ -89,7 +90,7 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0 }: I
                         scale.value = withSpring(1, { damping: 20, stiffness: 300 });
                       }}
                       onPress={() => handlePress(key)}
-                      className="flex-1 bg-neutral-800 rounded-2xl py-5 items-center active:bg-neutral-700"
+                      className="items-center flex-1 py-5 bg-neutral-800 rounded-2xl active:bg-neutral-700"
                       style={useAnimatedStyle(() => ({
                         transform: [{ scale: scale.value }]
                       }))}
@@ -97,9 +98,9 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0 }: I
                       {key === "backspace" ? (
                         <Ionicons name="backspace-outline" size={24} color="#fff" />
                       ) : key === "clear" ? (
-                        <Text className="text-red-400 text-lg font-semibold">C</Text>
+                        <Text className="text-lg font-semibold text-red-400">C</Text>
                       ) : (
-                        <Text className="text-white text-2xl font-semibold">{key}</Text>
+                        <Text className="text-2xl font-semibold text-white">{key}</Text>
                       )}
                     </AnimatedPressable>
                   );
@@ -117,12 +118,12 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0 }: I
               submitScale.value = withSpring(1, { damping: 20, stiffness: 300 });
             }}
             onPress={handleSubmit}
-            className="bg-emerald-500 rounded-2xl py-4 items-center active:bg-emerald-600"
+            className="items-center py-4 bg-emerald-500 rounded-2xl active:bg-emerald-600"
             style={useAnimatedStyle(() => ({
               transform: [{ scale: submitScale.value }]
             }))}
           >
-            <Text className="text-white text-lg font-bold">Set Income</Text>
+            <Text className="text-lg font-bold text-white">Set Income</Text>
           </AnimatedPressable>
         </Animated.View>
       </Animated.View>

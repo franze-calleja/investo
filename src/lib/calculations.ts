@@ -15,26 +15,40 @@ export function computeSplitAmounts(netIncome: number, split: { needsPct: number
   return { needs, wants, savings };
 }
 
-export function computeFutureValueMonthly(contributionMonthly: number, annualRatePct: number, years: number) {
+export function computeFutureValueMonthly(
+  contributionMonthly: number,
+  annualRatePct: number,
+  years: number,
+  lumpSum = 0
+) {
   const c = Math.max(contributionMonthly, 0);
+  const initialAmount = Math.max(lumpSum, 0);
   const rAnnual = annualRatePct / 100;
   const rMonthly = rAnnual / 12;
   const n = Math.max(years, 0);
   const months = Math.round(n * 12);
 
   if (months === 0) {
-    return { futureValue: 0, principal: 0, interest: 0 };
+    return { futureValue: initialAmount, principal: initialAmount, interest: 0 };
   }
 
   if (Math.abs(rMonthly) < 1e-9) {
-    const principal = c * months;
+    const principal = initialAmount + c * months;
     return { futureValue: principal, principal, interest: 0 };
   }
 
   const growth = Math.pow(1 + rMonthly, months);
-  const futureValue = c * ((growth - 1) / rMonthly);
-  const principal = c * months;
+  
+  // Future value of lump sum
+  const lumpSumFV = initialAmount * growth;
+  
+  // Future value of monthly contributions
+  const contributionsFV = c * ((growth - 1) / rMonthly);
+  
+  const futureValue = lumpSumFV + contributionsFV;
+  const principal = initialAmount + c * months;
   const interest = futureValue - principal;
+  
   return { futureValue, principal, interest };
 }
 

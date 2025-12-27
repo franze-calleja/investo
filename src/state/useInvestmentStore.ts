@@ -22,6 +22,8 @@ type InvestmentState = {
   horizonYears: number;
   manualRatePct: number | null;
   assetRate: AssetRate;
+  lumpSum: number;
+  inflationAdjusted: boolean;
 };
 
 type InvestmentActions = {
@@ -32,6 +34,8 @@ type InvestmentActions = {
   setHorizonYears: (value: number) => void;
   setManualRatePct: (value: number | null) => void;
   setAssetRate: (value: AssetRate) => void;
+  setLumpSum: (value: number) => void;
+  setInflationAdjusted: (value: boolean) => void;
 };
 
 type InvestmentStore = InvestmentState & InvestmentActions;
@@ -72,6 +76,8 @@ export const useInvestmentStore = create<InvestmentStore>()(
       horizonYears: 20,
       manualRatePct: null,
       assetRate: { symbol: "SPX", cagrPct: null, source: undefined },
+      lumpSum: 0,
+      inflationAdjusted: false,
 
       setIncome: (value) => set({ income: Math.max(0, value) }),
       setDeductionPct: (value) => set({ deductionPct: clamp(value, 0, 60) }),
@@ -82,7 +88,9 @@ export const useInvestmentStore = create<InvestmentStore>()(
       resetSplit: () => set({ split: defaultSplit }),
       setHorizonYears: (value) => set({ horizonYears: clamp(value, 1, 50) }),
       setManualRatePct: (value) => set({ manualRatePct: value === null ? null : Math.max(0, value) }),
-      setAssetRate: (value) => set({ assetRate: value })
+      setAssetRate: (value) => set({ assetRate: value }),
+      setLumpSum: (value) => set({ lumpSum: Math.max(0, value) }),
+      setInflationAdjusted: (value) => set({ inflationAdjusted: value })
     }),
     {
       name: "investo-storage",
@@ -96,9 +104,11 @@ export function selectDerived(state: InvestmentStore) {
   const splitAmounts = computeSplitAmounts(netIncome, state.split);
   const savingsMonthly = splitAmounts.savings;
 
-  const effectiveRate = state.manualRatePct ?? state.assetRate.cagrPct ?? 0;
+  const baseRate = state.manualRatePct ?? state.assetRate.cagrPct ?? 0;
+  const inflationRate = state.inflationAdjusted ? 3.5 : 0;
+  const effectiveRate = Math.max(baseRate - inflationRate, 0);
 
-  const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, state.horizonYears);
+  const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, state.horizonYears, state.lumpSum);
   const passiveIncome = computePassiveIncome(growth.futureValue, effectiveRate);
 
   return {
@@ -106,6 +116,8 @@ export function selectDerived(state: InvestmentStore) {
     splitAmounts,
     savingsMonthly,
     effectiveRate,
+    baseRate,
+    inflationRate,
     growth,
     passiveIncome
   };

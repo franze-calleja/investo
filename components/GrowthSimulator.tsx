@@ -15,7 +15,7 @@ export function GrowthSimulator() {
   const horizonYears = useInvestmentStore((state) => state.horizonYears);
   const setHorizonYears = useInvestmentStore((state) => state.setHorizonYears);
   const [displayHorizon, setDisplayHorizon] = useState(horizonYears);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<number | null>(null);
   const lastHapticValue = useRef(horizonYears);
   const chartOpacity = useSharedValue(1);
   const income = useInvestmentStore((state) => state.income);
@@ -23,6 +23,8 @@ export function GrowthSimulator() {
   const split = useInvestmentStore((state) => state.split);
   const manualRatePct = useInvestmentStore((state) => state.manualRatePct);
   const assetRate = useInvestmentStore((state) => state.assetRate);
+  const lumpSum = useInvestmentStore((state) => state.lumpSum);
+  const inflationAdjusted = useInvestmentStore((state) => state.inflationAdjusted);
 
   const handleHorizonChange = useCallback((value: number) => {
     const rounded = Math.round(value);
@@ -45,11 +47,13 @@ export function GrowthSimulator() {
     const netIncome = computeNetIncome(income, deductionPct);
     const splitAmounts = computeSplitAmounts(netIncome, split);
     const savingsMonthly = splitAmounts.savings;
-    const effectiveRate = manualRatePct ?? assetRate.cagrPct ?? 0;
-    const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, horizonYears);
+    const baseRate = manualRatePct ?? assetRate.cagrPct ?? 0;
+    const inflationRate = inflationAdjusted ? 3.5 : 0;
+    const effectiveRate = Math.max(baseRate - inflationRate, 0);
+    const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, horizonYears, lumpSum);
     const passiveIncome = computePassiveIncome(growth.futureValue, effectiveRate);
-    return { growth, passiveIncome, savingsMonthly, effectiveRate };
-  }, [income, deductionPct, split, manualRatePct, assetRate.cagrPct, horizonYears]);
+    return { growth, passiveIncome, savingsMonthly, effectiveRate, inflationRate };
+  }, [income, deductionPct, split, manualRatePct, assetRate.cagrPct, horizonYears, lumpSum, inflationAdjusted]);
 
   const chartBars = useMemo(() => {
     const total = derived.growth.futureValue;
@@ -69,8 +73,10 @@ export function GrowthSimulator() {
       const netIncome = computeNetIncome(income, deductionPct);
       const splitAmounts = computeSplitAmounts(netIncome, split);
       const savingsMonthly = splitAmounts.savings;
-      const effectiveRate = manualRatePct ?? assetRate.cagrPct ?? 0;
-      const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, year);
+      const baseRate = manualRatePct ?? assetRate.cagrPct ?? 0;
+      const inflationRate = inflationAdjusted ? 3.5 : 0;
+      const effectiveRate = Math.max(baseRate - inflationRate, 0);
+      const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, year, lumpSum);
       points.push(growth.futureValue);
       labels.push(year % 5 === 0 ? `${year}y` : "");
     }
@@ -85,34 +91,34 @@ export function GrowthSimulator() {
         },
       ],
     };
-  }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct]);
+  }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct, lumpSum, inflationAdjusted]);
 
   if (income === 0) {
     return (
-      <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
+      <Animated.View className="gap-5 p-4 bg-neutral-900 rounded-2xl" entering={FadeIn.duration(300)}>
         <View className="gap-1">
-          <Text className="text-white text-xl font-semibold">Growth Simulator</Text>
-          <Text className="text-neutral-400 text-sm">Time horizon with principal vs interest visual</Text>
+          <Text className="text-xl font-semibold text-white">Growth Simulator</Text>
+          <Text className="text-sm text-neutral-400">Time horizon with principal vs interest visual</Text>
         </View>
-        <View className="bg-neutral-800 rounded-2xl p-8 items-center gap-3">
-          <Text className="text-neutral-500 text-center text-4xl">📈</Text>
-          <Text className="text-neutral-400 text-center">Configure your budget and income to see growth projections</Text>
+        <View className="items-center gap-3 p-8 bg-neutral-800 rounded-2xl">
+          <Text className="text-4xl text-center text-neutral-500">📈</Text>
+          <Text className="text-center text-neutral-400">Configure your budget and income to see growth projections</Text>
         </View>
       </Animated.View>
     );
   }
 
   return (
-    <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
+    <Animated.View className="gap-5 p-4 bg-neutral-900 rounded-2xl" entering={FadeIn.duration(300)}>
       <View className="gap-1">
-        <Text className="text-white text-xl font-semibold">Growth Simulator</Text>
-        <Text className="text-neutral-400 text-sm">Time horizon with principal vs interest visual</Text>
+        <Text className="text-xl font-semibold text-white">Growth Simulator</Text>
+        <Text className="text-sm text-neutral-400">Time horizon with principal vs interest visual</Text>
       </View>
 
       <View className="gap-2">
-        <View className="flex-row justify-between items-center">
+        <View className="flex-row items-center justify-between">
           <Text className="text-neutral-300">Horizon (years)</Text>
-          <Text className="text-white font-semibold">{displayHorizon}y</Text>
+          <Text className="font-semibold text-white">{displayHorizon}y</Text>
         </View>
         <Slider
           value={displayHorizon}
@@ -172,21 +178,21 @@ export function GrowthSimulator() {
       </Animated.View>
 
       <View className="gap-2">
-        <Text className="text-neutral-300 text-sm">Principal vs Interest</Text>
-        <View className="h-3 rounded-full overflow-hidden bg-neutral-800 flex-row">
+        <Text className="text-sm text-neutral-300">Principal vs Interest</Text>
+        <View className="flex-row h-3 overflow-hidden rounded-full bg-neutral-800">
           <View style={{ flex: chartBars.principalPct }} className="h-full bg-emerald-500" />
           <View style={{ flex: chartBars.interestPct }} className="h-full bg-amber-400" />
         </View>
         <View className="flex-row justify-between">
-          <Text className="text-emerald-400 text-sm">Principal {chartBars.principalPct.toFixed(0)}%</Text>
-          <Text className="text-amber-400 text-sm">Interest {chartBars.interestPct.toFixed(0)}%</Text>
+          <Text className="text-sm text-emerald-400">Principal {chartBars.principalPct.toFixed(0)}%</Text>
+          <Text className="text-sm text-amber-400">Interest {chartBars.interestPct.toFixed(0)}%</Text>
         </View>
       </View>
 
-      <View className="bg-neutral-800 rounded-2xl p-4 gap-2">
-        <Text className="text-neutral-300 text-sm">Projected total value</Text>
-        <Text className="text-3xl text-white font-semibold">₱{formatNumber(derived.growth.futureValue)}</Text>
-        <Text className="text-neutral-400 text-sm">
+      <View className="gap-2 p-4 bg-neutral-800 rounded-2xl">
+        <Text className="text-sm text-neutral-300">Projected total value</Text>
+        <Text className="text-3xl font-semibold text-white">₱{formatNumber(derived.growth.futureValue)}</Text>
+        <Text className="text-sm text-neutral-400">
           Based on monthly savings ₱{formatNumber(derived.savingsMonthly)} at {derived.effectiveRate}% annual
         </Text>
       </View>

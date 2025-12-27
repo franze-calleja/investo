@@ -20,16 +20,20 @@ export function DetailsDashboard() {
   const horizonYears = useInvestmentStore((state) => state.horizonYears);
   const manualRatePct = useInvestmentStore((state) => state.manualRatePct);
   const assetRate = useInvestmentStore((state) => state.assetRate);
+  const lumpSum = useInvestmentStore((state) => state.lumpSum);
+  const inflationAdjusted = useInvestmentStore((state) => state.inflationAdjusted);
 
   const derived = useMemo(() => {
     const netIncome = computeNetIncome(income, deductionPct);
     const splitAmounts = computeSplitAmounts(netIncome, split);
     const savingsMonthly = splitAmounts.savings;
-    const effectiveRate = manualRatePct ?? assetRate.cagrPct ?? 0;
-    const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, horizonYears);
+    const baseRate = manualRatePct ?? assetRate.cagrPct ?? 0;
+    const inflationRate = inflationAdjusted ? 3.5 : 0;
+    const effectiveRate = Math.max(baseRate - inflationRate, 0);
+    const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, horizonYears, lumpSum);
     const passiveIncome = computePassiveIncome(growth.futureValue, effectiveRate);
     return { growth, passiveIncome };
-  }, [income, deductionPct, split, horizonYears, manualRatePct, assetRate.cagrPct]);
+  }, [income, deductionPct, split, horizonYears, manualRatePct, assetRate.cagrPct, lumpSum, inflationAdjusted]);
 
   if (income === 0) {
     return (

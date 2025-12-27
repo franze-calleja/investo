@@ -19,16 +19,20 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export function BudgetSplitter() {
   const [showDeduction, setShowDeduction] = useState(false);
   const [showKeypad, setShowKeypad] = useState(false);
+  const [showLumpSumKeypad, setShowLumpSumKeypad] = useState(false);
   const lastHapticValue = useRef<{ [key: string]: number }>({});
   const incomeScale = useSharedValue(1);
+  const lumpSumScale = useSharedValue(1);
   const resetScale = useSharedValue(1);
 
   const income = useInvestmentStore((state) => state.income);
   const deductionPct = useInvestmentStore((state) => state.deductionPct);
   const split = useInvestmentStore((state) => state.split);
+  const lumpSum = useInvestmentStore((state) => state.lumpSum);
   const setIncome = useInvestmentStore((state) => state.setIncome);
   const setDeductionPct = useInvestmentStore((state) => state.setDeductionPct);
   const setSplit = useInvestmentStore((state) => state.setSplit);
+  const setLumpSum = useInvestmentStore((state) => state.setLumpSum);
   const resetSplit = useInvestmentStore((state) => state.resetSplit);
 
   const derived = useMemo(() => {
@@ -112,6 +116,37 @@ export function BudgetSplitter() {
         onSubmit={setIncome}
         initialValue={income}
       />
+
+      <IncomeKeypad
+        visible={showLumpSumKeypad}
+        onClose={() => setShowLumpSumKeypad(false)}
+        onSubmit={setLumpSum}
+        initialValue={lumpSum}
+        title="Starting Lump Sum"
+      />
+
+      {/* Lump Sum */}
+      <View className="gap-3">
+        <Text className="text-neutral-300">Starting lump sum (optional)</Text>
+        <AnimatedPressable
+          onPressIn={() => {
+            lumpSumScale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
+          onPressOut={() => {
+            lumpSumScale.value = withSpring(1, { damping: 15, stiffness: 400 });
+          }}
+          onPress={() => setShowLumpSumKeypad(true)}
+          className="bg-neutral-800 rounded-xl px-4 py-3"
+          style={useAnimatedStyle(() => ({
+            transform: [{ scale: lumpSumScale.value }]
+          }))}
+        >
+          <Text className="text-white text-lg">
+            {lumpSum ? `₱${lumpSum.toLocaleString()}` : "Tap to add initial investment"}
+          </Text>
+        </AnimatedPressable>
+      </View>
 
       <View className="flex-row items-center justify-between">
         <Text className="text-neutral-300">Deduction toggle</Text>

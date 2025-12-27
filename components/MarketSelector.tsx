@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Switch, Text, TextInput, View } from "react-native";
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useAssetCagr } from "../src/hooks/useAssetCagr";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
@@ -11,8 +11,10 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export function MarketSelector() {
   const assetRate = useInvestmentStore((state) => state.assetRate);
   const manualRatePct = useInvestmentStore((state) => state.manualRatePct);
+  const inflationAdjusted = useInvestmentStore((state) => state.inflationAdjusted);
   const setAssetRate = useInvestmentStore((state) => state.setAssetRate);
   const setManualRatePct = useInvestmentStore((state) => state.setManualRatePct);
+  const setInflationAdjusted = useInvestmentStore((state) => state.setInflationAdjusted);
 
   const [symbol, setSymbol] = useState(assetRate.symbol ?? "SPX");
   const [manualRate, setManualRate] = useState<string>(manualRatePct?.toString() ?? "");
@@ -89,6 +91,23 @@ export function MarketSelector() {
           <Text className="text-amber-400 text-xs">⚠️ High rate - be realistic with projections</Text>
         )}
         <RateKeypad value={manualRate} onChange={setManualRate} />
+      </View>
+
+      {/* Inflation Toggle */}
+      <View className="flex-row items-center justify-between bg-neutral-800 rounded-xl px-4 py-3">
+        <View className="flex-1 gap-1">
+          <Text className="text-white font-semibold">Adjust for inflation</Text>
+          <Text className="text-neutral-400 text-xs">Subtracts ~3.5% to show real returns</Text>
+        </View>
+        <Switch
+          value={inflationAdjusted}
+          onValueChange={(value) => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setInflationAdjusted(value);
+          }}
+          trackColor={{ false: "#1f2937", true: "#22c55e" }}
+          thumbColor={inflationAdjusted ? "#fff" : "#9ca3af"}
+        />
       </View>
 
       <View className="bg-neutral-800 rounded-2xl p-4 gap-2">
