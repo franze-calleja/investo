@@ -1,6 +1,7 @@
 import Slider from "@react-native-community/slider";
 import { useMemo } from "react";
-import { Text, View } from "react-native";
+import { Dimensions, Text, View } from "react-native";
+import { LineChart } from "react-native-chart-kit";
 import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
@@ -35,6 +36,34 @@ export function GrowthSimulator() {
     return { principalPct, interestPct };
   }, [derived.growth.futureValue, derived.growth.principal]);
 
+  const chartData = useMemo(() => {
+    const years = Math.min(horizonYears, 20); // Show max 20 points for readability
+    const increment = horizonYears > 20 ? Math.ceil(horizonYears / 20) : 1;
+    const points: number[] = [];
+    const labels: string[] = [];
+
+    for (let year = 0; year <= horizonYears; year += increment) {
+      const netIncome = computeNetIncome(income, deductionPct);
+      const splitAmounts = computeSplitAmounts(netIncome, split);
+      const savingsMonthly = splitAmounts.savings;
+      const effectiveRate = manualRatePct ?? assetRate.cagrPct ?? 0;
+      const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, year);
+      points.push(growth.futureValue);
+      labels.push(year % 5 === 0 ? `${year}y` : "");
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          data: points,
+          color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
+          strokeWidth: 3,
+        },
+      ],
+    };
+  }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct]);
+
   return (
     <View className="gap-5 bg-neutral-900 p-4 rounded-2xl">
       <View className="gap-1">
@@ -56,6 +85,48 @@ export function GrowthSimulator() {
           minimumTrackTintColor="#22c55e"
           maximumTrackTintColor="#1f2937"
           thumbTintColor="#22c55e"
+        />
+      </View>
+
+      {/* Line Chart */}
+      <View className="items-center -mx-4">
+        <LineChart
+          data={chartData}
+          width={Dimensions.get("window").width - 32}
+          height={240}
+          chartConfig={{
+            backgroundColor: "#171717",
+            backgroundGradientFrom: "#171717",
+            backgroundGradientTo: "#171717",
+            decimalPlaces: 0,
+            color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(163, 163, 163, ${opacity})`,
+            style: {
+              borderRadius: 16,
+            },
+            propsForDots: {
+              r: "4",
+              strokeWidth: "2",
+              stroke: "#22c55e",
+            },
+            propsForBackgroundLines: {
+              strokeDasharray: "",
+              stroke: "#1f2937",
+              strokeWidth: 1,
+            },
+          }}
+          bezier
+          style={{
+            marginVertical: 8,
+            borderRadius: 16,
+          }}
+          withInnerLines={true}
+          withOuterLines={false}
+          withVerticalLines={false}
+          withHorizontalLines={true}
+          withVerticalLabels={true}
+          withHorizontalLabels={true}
+          fromZero={true}
         />
       </View>
 

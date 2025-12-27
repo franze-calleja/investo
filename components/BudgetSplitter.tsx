@@ -1,8 +1,11 @@
 import Slider from "@react-native-community/slider";
-import { useMemo, useState } from "react";
-import { Switch, Text, TextInput, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { useMemo, useRef, useState } from "react";
+import { Dimensions, Pressable, Switch, Text, View } from "react-native";
+import { PieChart } from "react-native-chart-kit";
 import { clamp, computeNetIncome, computeSplitAmounts } from "../src/lib/calculations";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
+import { IncomeKeypad } from "./IncomeKeypad";
 
 const TRACK_COLORS = {
   needs: "#60a5fa",
@@ -12,6 +15,8 @@ const TRACK_COLORS = {
 
 export function BudgetSplitter() {
   const [showDeduction, setShowDeduction] = useState(false);
+  const [showKeypad, setShowKeypad] = useState(false);
+  const lastHapticValue = useRef<{ [key: string]: number }>({});
 
   const income = useInvestmentStore((state) => state.income);
   const deductionPct = useInvestmentStore((state) => state.deductionPct);
@@ -37,6 +42,17 @@ export function BudgetSplitter() {
     [split, derived.splitAmounts]
   );
 
+  const chartData = useMemo(
+    () => splitSummary.map((item) => ({
+      name: item.label,
+      population: item.amount,
+      color: item.color,
+      legendFontColor: "#a3a3a3",
+      legendFontSize: 13,
+    })),
+    [splitSummary]
+  );
+
   return (
     <View className="gap-5 bg-neutral-900 p-4 rounded-2xl">
       <View className="flex-row items-center justify-between">
@@ -44,20 +60,34 @@ export function BudgetSplitter() {
           <Text className="text-white text-xl font-semibold">Budget Splitter</Text>
           <Text className="text-neutral-400 text-sm">Interactive 50/30/20 with live amounts</Text>
         </View>
-        <Text onPress={resetSplit} className="text-emerald-400 font-semibold">Reset</Text>
+        <Pressable
+          onPress={() => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            resetSplit();
+          }}
+        >
+          <Text className="text-emerald-400 font-semibold">Reset</Text>
+        </Pressable>
       </View>
 
       <View className="gap-3">
         <Text className="text-neutral-300">Monthly income</Text>
-        <TextInput
-          value={income ? String(income) : ""}
-          onChangeText={(v) => setIncome(Number(v) || 0)}
-          keyboardType="numeric"
-          placeholder="Enter monthly income"
-          placeholderTextColor="#6b7280"
-          className="bg-neutral-800 text-white rounded-xl px-4 py-3"
-        />
+        <Pressable
+          onPress={() => setShowKeypad(true)}
+          className="bg-neutral-800 rounded-xl px-4 py-3"
+        >
+          <Text className="text-white text-lg">
+            {income ? `₱${income.toLocaleString()}` : "Tap to enter income"}
+          </Text>
+        </Pressable>
       </View>
+
+      <IncomeKeypad
+        visible={showKeypad}
+        onClose={() => setShowKeypad(false)}
+        onSubmit={setIncome}
+        initialValue={income}
+      />
 
       <View className="flex-row items-center justify-between">
         <Text className="text-neutral-300">Deduction toggle</Text>
@@ -92,7 +122,16 @@ export function BudgetSplitter() {
             </View>
             <Slider
               value={item.pct}
-              onValueChange={(v) => setSplit(item.key, clamp(v, 0, 100))}
+              onValueChange={(v) => {
+                const newValue = Math.round(clamp(v, 0, 100));
+                // Haptic feedback on every 5% increment
+                const lastValue = lastHapticValue.current[item.key] || 0;
+                if (Math.floor(newValue / 5) !== Math.floor(lastValue / 5)) {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  lastHapticValue.current[item.key] = newValue;
+                }
+                setSplit(item.key, newValue);
+              }}
               minimumValue={0}
               maximumValue={100}
               step={1}
@@ -104,16 +143,24 @@ export function BudgetSplitter() {
         ))}
       </View>
 
-      <View className="h-3 rounded-full overflow-hidden bg-neutral-800 flex-row">
-        {splitSummary.map((item) => (
-          <View
-            key={item.key}
-            style={{ flex: item.pct }}
-            className="h-full"
-          >
-            <View style={{ backgroundColor: item.color, flex: 1 }} />
-          </View>
-        ))}
+      {/* Donut Chart */}
+      <View className="items-center py-4">
+        <PieChart
+          data={chartData}
+          width={Dimensions.get("window").width - 80}
+          height={200}
+          chartConfig={{
+            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            backgroundGradientFrom: "#171717",
+            backgroundGradientTo: "#171717",
+          }}
+          accessor="population"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          center={[10, 0]}
+          absolute
+          hasLegend={true}
+        />
       </View>
 
       <View className="flex-row justify-between">
