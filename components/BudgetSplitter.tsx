@@ -88,6 +88,82 @@ export function BudgetSplitter() {
         </AnimatedPressable>
       </View>
 
+      {/* Quick Preset Ratios */}
+      <View className="gap-3">
+        <Text className="text-neutral-300 text-sm">Quick Presets</Text>
+        <View className="flex-row gap-2">
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSplit("needsPct", 50);
+              setSplit("wantsPct", 30);
+              setSplit("savingsPct", 20);
+            }}
+            className={`flex-1 px-3 py-2 rounded-xl ${
+              split.needsPct === 50 && split.wantsPct === 30 && split.savingsPct === 20
+                ? "bg-emerald-500"
+                : "bg-neutral-800"
+            }`}
+          >
+            <Text
+              className={`text-center text-sm font-semibold ${
+                split.needsPct === 50 && split.wantsPct === 30 && split.savingsPct === 20
+                  ? "text-white"
+                  : "text-neutral-400"
+              }`}
+            >
+              50/30/20
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSplit("needsPct", 60);
+              setSplit("wantsPct", 20);
+              setSplit("savingsPct", 20);
+            }}
+            className={`flex-1 px-3 py-2 rounded-xl ${
+              split.needsPct === 60 && split.wantsPct === 20 && split.savingsPct === 20
+                ? "bg-emerald-500"
+                : "bg-neutral-800"
+            }`}
+          >
+            <Text
+              className={`text-center text-sm font-semibold ${
+                split.needsPct === 60 && split.wantsPct === 20 && split.savingsPct === 20
+                  ? "text-white"
+                  : "text-neutral-400"
+              }`}
+            >
+              60/20/20
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSplit("needsPct", 70);
+              setSplit("wantsPct", 20);
+              setSplit("savingsPct", 10);
+            }}
+            className={`flex-1 px-3 py-2 rounded-xl ${
+              split.needsPct === 70 && split.wantsPct === 20 && split.savingsPct === 10
+                ? "bg-emerald-500"
+                : "bg-neutral-800"
+            }`}
+          >
+            <Text
+              className={`text-center text-sm font-semibold ${
+                split.needsPct === 70 && split.wantsPct === 20 && split.savingsPct === 10
+                  ? "text-white"
+                  : "text-neutral-400"
+              }`}
+            >
+              70/20/10
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
       <View className="gap-3">
         <Text className="text-neutral-300">Monthly income</Text>
         <AnimatedPressable
