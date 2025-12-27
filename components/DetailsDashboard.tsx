@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
@@ -30,8 +31,20 @@ export function DetailsDashboard() {
     return { growth, passiveIncome };
   }, [income, deductionPct, split, horizonYears, manualRatePct, assetRate.cagrPct]);
 
+  if (income === 0) {
+    return (
+      <Animated.View className="gap-3" entering={FadeIn.duration(300)}>
+        <Text className="text-white text-xl font-semibold">Details Dashboard</Text>
+        <View className="bg-neutral-900 rounded-2xl p-8 items-center gap-3">
+          <Text className="text-neutral-500 text-center text-lg">💰</Text>
+          <Text className="text-neutral-400 text-center">Set your monthly income in the Setup tab to see your investment projections</Text>
+        </View>
+      </Animated.View>
+    );
+  }
+
   return (
-    <View className="gap-3">
+    <Animated.View className="gap-3" entering={FadeIn.duration(300)}>
       <Text className="text-white text-xl font-semibold">Details Dashboard</Text>
       <View className="gap-3">
         <Card label="Total Portfolio Value" value={`₱${Math.round(derived.growth.futureValue).toLocaleString()}`} accent="#22c55e" />
@@ -39,6 +52,6 @@ export function DetailsDashboard() {
         <Card label="Total Interest Earned" value={`₱${Math.round(derived.growth.interest).toLocaleString()}`} />
         <Card label="Monthly Passive Income" value={`₱${Math.round(derived.passiveIncome).toLocaleString()}`} />
       </View>
-    </View>
+    </Animated.View>
   );
 }

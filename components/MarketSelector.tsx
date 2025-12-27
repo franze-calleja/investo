@@ -1,7 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useAssetCagr } from "../src/hooks/useAssetCagr";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 import { RateKeypad } from "./RateKeypad";
@@ -43,7 +43,7 @@ export function MarketSelector() {
   }, [manualRate, data?.cagrPct, assetRate.cagrPct]);
 
   return (
-    <View className="gap-5 bg-neutral-900 p-4 rounded-2xl">
+    <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
       <View className="flex-row items-center justify-between">
         <View className="gap-1">
           <Text className="text-white text-xl font-semibold">Market Selector</Text>
@@ -81,22 +81,39 @@ export function MarketSelector() {
       <View className="gap-3">
         <Text className="text-neutral-300">Manual rate override (%)</Text>
         <View className="bg-neutral-800 text-white rounded-xl px-4 py-3 min-h-[52px] justify-center">
-          <Text className="text-white text-base">
+          <Text className={manualRate ? "text-white text-base" : "text-neutral-500 text-base"}>
             {manualRate || "Leave blank to use API/fallback"}
           </Text>
         </View>
+        {manualRate && Number(manualRate) > 50 && (
+          <Text className="text-amber-400 text-xs">⚠️ High rate - be realistic with projections</Text>
+        )}
         <RateKeypad value={manualRate} onChange={setManualRate} />
       </View>
 
       <View className="bg-neutral-800 rounded-2xl p-4 gap-2">
         <View className="flex-row items-center gap-2">
           <Text className="text-white text-lg font-semibold">Rate</Text>
-          {isLoading && <Text className="text-amber-400 text-sm">Loading…</Text>}
-          {isFallback && <Text className="text-orange-400 text-xs">Using fallback rate</Text>}
+          {isLoading && (
+            <Animated.View entering={FadeIn.duration(200)}>
+              <Text className="text-amber-400 text-sm">Loading…</Text>
+            </Animated.View>
+          )}
+          {isFallback && !isLoading && (
+            <Animated.View entering={FadeIn.duration(200)}>
+              <Text className="text-orange-400 text-xs">Using fallback rate</Text>
+            </Animated.View>
+          )}
         </View>
-        {isError && !data && <Text className="text-red-400 text-sm">{String(error)}</Text>}
+        {isError && !data && (
+          <Animated.View entering={FadeIn.duration(200)}>
+            <Text className="text-red-400 text-sm">{String(error)}</Text>
+          </Animated.View>
+        )}
         {effectiveRate !== undefined ? (
-          <Text className="text-3xl text-emerald-400 font-semibold">{effectiveRate}%</Text>
+          <Animated.View entering={FadeIn.duration(300)}>
+            <Text className="text-3xl text-emerald-400 font-semibold">{effectiveRate}%</Text>
+          </Animated.View>
         ) : (
           <Text className="text-neutral-500">No rate available yet.</Text>
         )}
@@ -107,6 +124,6 @@ export function MarketSelector() {
           </Text>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 }

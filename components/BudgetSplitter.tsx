@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import { useMemo, useRef, useState } from "react";
 import { Dimensions, Pressable, Switch, Text, View } from "react-native";
 import { PieChart } from "react-native-chart-kit";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { clamp, computeNetIncome, computeSplitAmounts } from "../src/lib/calculations";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 import { IncomeKeypad } from "./IncomeKeypad";
@@ -59,7 +59,7 @@ export function BudgetSplitter() {
   );
 
   return (
-    <View className="gap-5 bg-neutral-900 p-4 rounded-2xl">
+    <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
       <View className="flex-row items-center justify-between">
         <View className="gap-1">
           <Text className="text-white text-xl font-semibold">Budget Splitter</Text>
@@ -171,11 +171,11 @@ export function BudgetSplitter() {
       </View>
 
       {/* Donut Chart */}
-      <View className="items-center py-4">
+      <Animated.View className="items-center py-4" entering={FadeIn.duration(300)}>
         <PieChart
           data={chartData}
-          width={Dimensions.get("window").width - 80}
-          height={200}
+          width={Math.min(Dimensions.get("window").width - 80, 340)}
+          height={220}
           chartConfig={{
             color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             backgroundGradientFrom: "#171717",
@@ -188,16 +188,16 @@ export function BudgetSplitter() {
           absolute
           hasLegend={true}
         />
-      </View>
+      </Animated.View>
 
-      <View className="flex-row justify-between">
+      <Animated.View className="flex-row justify-between" entering={FadeIn.duration(300).delay(100)}>
         <Text className="text-neutral-400">Net income</Text>
         <Text className="text-white font-semibold">₱{Math.round(derived.netIncome).toLocaleString()}</Text>
-      </View>
-      <View className="flex-row justify-between">
+      </Animated.View>
+      <Animated.View className="flex-row justify-between" entering={FadeIn.duration(300).delay(200)}>
         <Text className="text-neutral-400">Savings monthly</Text>
         <Text className="text-emerald-400 font-semibold">₱{Math.round(derived.savingsMonthly).toLocaleString()}</Text>
-      </View>
-    </View>
+      </Animated.View>
+    </Animated.View>
   );
 }

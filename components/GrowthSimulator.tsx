@@ -87,8 +87,23 @@ export function GrowthSimulator() {
     };
   }, [horizonYears, income, deductionPct, split, manualRatePct, assetRate.cagrPct]);
 
+  if (income === 0) {
+    return (
+      <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
+        <View className="gap-1">
+          <Text className="text-white text-xl font-semibold">Growth Simulator</Text>
+          <Text className="text-neutral-400 text-sm">Time horizon with principal vs interest visual</Text>
+        </View>
+        <View className="bg-neutral-800 rounded-2xl p-8 items-center gap-3">
+          <Text className="text-neutral-500 text-center text-4xl">📈</Text>
+          <Text className="text-neutral-400 text-center">Configure your budget and income to see growth projections</Text>
+        </View>
+      </Animated.View>
+    );
+  }
+
   return (
-    <View className="gap-5 bg-neutral-900 p-4 rounded-2xl">
+    <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
       <View className="gap-1">
         <Text className="text-white text-xl font-semibold">Growth Simulator</Text>
         <Text className="text-neutral-400 text-sm">Time horizon with principal vs interest visual</Text>
@@ -175,6 +190,6 @@ export function GrowthSimulator() {
           Based on monthly savings ₱{formatNumber(derived.savingsMonthly)} at {derived.effectiveRate}% annual
         </Text>
       </View>
-    </View>
+    </Animated.View>
   );
 }

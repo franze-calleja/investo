@@ -1,4 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { clamp, computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../lib/calculations";
 
 type Split = {
@@ -61,25 +63,33 @@ function rebalanceSplit(current: Split, changedKey: keyof Split, newValue: numbe
   return { needsPct: newNeeds, wantsPct: newWants, savingsPct: value };
 }
 
-export const useInvestmentStore = create<InvestmentStore>((set) => ({
-  income: 60000,
-  deductionPct: 0,
-  split: defaultSplit,
-  horizonYears: 20,
-  manualRatePct: null,
-  assetRate: { symbol: "SPX", cagrPct: null, source: undefined },
+export const useInvestmentStore = create<InvestmentStore>()(
+  persist(
+    (set) => ({
+      income: 60000,
+      deductionPct: 0,
+      split: defaultSplit,
+      horizonYears: 20,
+      manualRatePct: null,
+      assetRate: { symbol: "SPX", cagrPct: null, source: undefined },
 
-  setIncome: (value) => set({ income: Math.max(0, value) }),
-  setDeductionPct: (value) => set({ deductionPct: clamp(value, 0, 60) }),
-  setSplit: (key, value) =>
-    set((state) => ({
-      split: rebalanceSplit(state.split, key, value)
-    })),
-  resetSplit: () => set({ split: defaultSplit }),
-  setHorizonYears: (value) => set({ horizonYears: clamp(value, 1, 50) }),
-  setManualRatePct: (value) => set({ manualRatePct: value === null ? null : Math.max(0, value) }),
-  setAssetRate: (value) => set({ assetRate: value })
-}));
+      setIncome: (value) => set({ income: Math.max(0, value) }),
+      setDeductionPct: (value) => set({ deductionPct: clamp(value, 0, 60) }),
+      setSplit: (key, value) =>
+        set((state) => ({
+          split: rebalanceSplit(state.split, key, value)
+        })),
+      resetSplit: () => set({ split: defaultSplit }),
+      setHorizonYears: (value) => set({ horizonYears: clamp(value, 1, 50) }),
+      setManualRatePct: (value) => set({ manualRatePct: value === null ? null : Math.max(0, value) }),
+      setAssetRate: (value) => set({ assetRate: value })
+    }),
+    {
+      name: "investo-storage",
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
 
 export function selectDerived(state: InvestmentStore) {
   const netIncome = computeNetIncome(state.income, state.deductionPct);

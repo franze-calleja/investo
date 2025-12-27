@@ -17,6 +17,10 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0 }: I
   const [value, setValue] = useState(initialValue.toString());
   const submitScale = useSharedValue(1);
 
+  const numValue = Number(value) || 0;
+  const isVeryHigh = numValue > 500000;
+  const isVeryLow = numValue > 0 && numValue < 5000;
+
   const handlePress = (key: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (key === "backspace") {
@@ -60,6 +64,12 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0 }: I
             <Text className="text-white text-4xl font-bold">
               ₱{value || "0"}
             </Text>
+            {isVeryHigh && (
+              <Text className="text-amber-400 text-xs mt-2">⚠️ That's quite high! Double check your amount</Text>
+            )}
+            {isVeryLow && (
+              <Text className="text-orange-400 text-xs mt-2">💡 Tip: Even small amounts can grow over time</Text>
+            )}
           </View>
 
           {/* Keypad */}
