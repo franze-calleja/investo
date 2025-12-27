@@ -63,7 +63,7 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0, tit
           <View className="p-6 bg-neutral-800 rounded-2xl">
             <Text className="mb-2 text-sm text-neutral-400">Amount</Text>
             <Text className="text-4xl font-bold text-white">
-              ₱{value || "0"}
+              ₱{value ? Number(value).toLocaleString() : "0"}
             </Text>
             {isVeryHigh && (
               <Text className="mt-2 text-xs text-amber-400">⚠️ That's quite high! Double check your amount</Text>
