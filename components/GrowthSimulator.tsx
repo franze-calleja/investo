@@ -1,7 +1,7 @@
 import Slider from "@react-native-community/slider";
 import * as Haptics from "expo-haptics";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Dimensions, Text, View } from "react-native";
+import { Dimensions, Switch, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import Animated, { FadeIn, useSharedValue } from "react-native-reanimated";
 import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
@@ -25,6 +25,7 @@ export function GrowthSimulator() {
   const assetRate = useInvestmentStore((state) => state.assetRate);
   const lumpSum = useInvestmentStore((state) => state.lumpSum);
   const inflationAdjusted = useInvestmentStore((state) => state.inflationAdjusted);
+  const setInflationAdjusted = useInvestmentStore((state) => state.setInflationAdjusted);
 
   const handleHorizonChange = useCallback((value: number) => {
     const rounded = Math.round(value);
@@ -138,6 +139,23 @@ export function GrowthSimulator() {
       <View className="gap-1">
         <Text className="text-xl font-semibold text-white">Growth Simulator</Text>
         <Text className="text-sm text-neutral-400">Time horizon with principal vs interest visual</Text>
+      </View>
+
+      {/* Inflation Toggle */}
+      <View className="flex-row items-center justify-between bg-neutral-800 rounded-xl px-4 py-3">
+        <View className="flex-1 gap-1">
+          <Text className="text-white font-semibold">Adjust for inflation</Text>
+          <Text className="text-neutral-400 text-xs">Subtracts ~3.5% to show real returns</Text>
+        </View>
+        <Switch
+          value={inflationAdjusted}
+          onValueChange={(value) => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setInflationAdjusted(value);
+          }}
+          trackColor={{ false: "#1f2937", true: "#22c55e" }}
+          thumbColor={inflationAdjusted ? "#fff" : "#9ca3af"}
+        />
       </View>
 
       <View className="gap-2">
