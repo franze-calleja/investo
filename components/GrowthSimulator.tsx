@@ -1,7 +1,9 @@
 import Slider from "@react-native-community/slider";
-import { useMemo } from "react";
+import * as Haptics from "expo-haptics";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Dimensions, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
+import Animated, { FadeIn, useSharedValue } from "react-native-reanimated";
 import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
@@ -12,11 +14,32 @@ function formatNumber(value: number) {
 export function GrowthSimulator() {
   const horizonYears = useInvestmentStore((state) => state.horizonYears);
   const setHorizonYears = useInvestmentStore((state) => state.setHorizonYears);
+  const [displayHorizon, setDisplayHorizon] = useState(horizonYears);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastHapticValue = useRef(horizonYears);
+  const chartOpacity = useSharedValue(1);
   const income = useInvestmentStore((state) => state.income);
   const deductionPct = useInvestmentStore((state) => state.deductionPct);
   const split = useInvestmentStore((state) => state.split);
   const manualRatePct = useInvestmentStore((state) => state.manualRatePct);
   const assetRate = useInvestmentStore((state) => state.assetRate);
+
+  const handleHorizonChange = useCallback((value: number) => {
+    const rounded = Math.round(value);
+    setDisplayHorizon(rounded);
+    
+    // Haptic feedback at 5-year increments
+    if (Math.floor(rounded / 5) !== Math.floor(lastHapticValue.current / 5)) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      lastHapticValue.current = rounded;
+    }
+    
+    // Debounce the actual store update for performance
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setHorizonYears(rounded);
+    }, 150);
+  }, [setHorizonYears]);
 
   const derived = useMemo(() => {
     const netIncome = computeNetIncome(income, deductionPct);
@@ -74,11 +97,14 @@ export function GrowthSimulator() {
       <View className="gap-2">
         <View className="flex-row justify-between items-center">
           <Text className="text-neutral-300">Horizon (years)</Text>
-          <Text className="text-white font-semibold">{horizonYears}y</Text>
+          <Text className="text-white font-semibold">{displayHorizon}y</Text>
         </View>
         <Slider
-          value={horizonYears}
-          onValueChange={(v) => setHorizonYears(Math.round(v))}
+          value={displayHorizon}
+          onValueChange={handleHorizonChange}
+          onSlidingComplete={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          }}
           minimumValue={1}
           maximumValue={50}
           step={1}
@@ -89,7 +115,7 @@ export function GrowthSimulator() {
       </View>
 
       {/* Line Chart */}
-      <View className="items-center">
+      <Animated.View className="items-center" entering={FadeIn.duration(300)}>
         <LineChart
           data={chartData}
           width={Dimensions.get("window").width - 64}
@@ -128,7 +154,7 @@ export function GrowthSimulator() {
           withHorizontalLabels={true}
           fromZero={true}
         />
-      </View>
+      </Animated.View>
 
       <View className="gap-2">
         <Text className="text-neutral-300 text-sm">Principal vs Interest</Text>

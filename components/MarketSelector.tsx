@@ -1,8 +1,12 @@
+import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useAssetCagr } from "../src/hooks/useAssetCagr";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 import { RateKeypad } from "./RateKeypad";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function MarketSelector() {
   const assetRate = useInvestmentStore((state) => state.assetRate);
@@ -12,6 +16,7 @@ export function MarketSelector() {
 
   const [symbol, setSymbol] = useState(assetRate.symbol ?? "SPX");
   const [manualRate, setManualRate] = useState<string>(manualRatePct?.toString() ?? "");
+  const refreshScale = useSharedValue(1);
 
   const { data, isLoading, isError, error, isFallback, refetch } = useAssetCagr({ symbol });
 
@@ -44,9 +49,21 @@ export function MarketSelector() {
           <Text className="text-white text-xl font-semibold">Market Selector</Text>
           <Text className="text-neutral-400 text-sm">API-backed rate with manual override</Text>
         </View>
-        <Pressable onPress={refetch}>
+        <AnimatedPressable
+          onPressIn={() => {
+            refreshScale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
+          onPressOut={() => {
+            refreshScale.value = withSpring(1, { damping: 15, stiffness: 400 });
+          }}
+          onPress={refetch}
+          style={useAnimatedStyle(() => ({
+            transform: [{ scale: refreshScale.value }]
+          }))}
+        >
           <Text className="text-emerald-400 font-semibold">Refresh</Text>
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <View className="gap-3">

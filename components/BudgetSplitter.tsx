@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { useMemo, useRef, useState } from "react";
 import { Dimensions, Pressable, Switch, Text, View } from "react-native";
 import { PieChart } from "react-native-chart-kit";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { clamp, computeNetIncome, computeSplitAmounts } from "../src/lib/calculations";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 import { IncomeKeypad } from "./IncomeKeypad";
@@ -13,10 +14,14 @@ const TRACK_COLORS = {
   savings: "#22c55e"
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export function BudgetSplitter() {
   const [showDeduction, setShowDeduction] = useState(false);
   const [showKeypad, setShowKeypad] = useState(false);
   const lastHapticValue = useRef<{ [key: string]: number }>({});
+  const incomeScale = useSharedValue(1);
+  const resetScale = useSharedValue(1);
 
   const income = useInvestmentStore((state) => state.income);
   const deductionPct = useInvestmentStore((state) => state.deductionPct);
@@ -60,26 +65,45 @@ export function BudgetSplitter() {
           <Text className="text-white text-xl font-semibold">Budget Splitter</Text>
           <Text className="text-neutral-400 text-sm">Interactive 50/30/20 with live amounts</Text>
         </View>
-        <Pressable
+        <AnimatedPressable
+          onPressIn={() => {
+            resetScale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+          }}
+          onPressOut={() => {
+            resetScale.value = withSpring(1, { damping: 15, stiffness: 400 });
+          }}
           onPress={() => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             resetSplit();
           }}
+          style={useAnimatedStyle(() => ({
+            transform: [{ scale: resetScale.value }]
+          }))}
         >
           <Text className="text-emerald-400 font-semibold">Reset</Text>
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <View className="gap-3">
         <Text className="text-neutral-300">Monthly income</Text>
-        <Pressable
+        <AnimatedPressable
+          onPressIn={() => {
+            incomeScale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
+          onPressOut={() => {
+            incomeScale.value = withSpring(1, { damping: 15, stiffness: 400 });
+          }}
           onPress={() => setShowKeypad(true)}
           className="bg-neutral-800 rounded-xl px-4 py-3"
+          style={useAnimatedStyle(() => ({
+            transform: [{ scale: incomeScale.value }]
+          }))}
         >
           <Text className="text-white text-lg">
             {income ? `₱${income.toLocaleString()}` : "Tap to enter income"}
           </Text>
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <IncomeKeypad
@@ -131,6 +155,9 @@ export function BudgetSplitter() {
                   lastHapticValue.current[item.key] = newValue;
                 }
                 setSplit(item.key, newValue);
+              }}
+              onSlidingComplete={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }}
               minimumValue={0}
               maximumValue={100}
