@@ -89,11 +89,11 @@ export function GrowthSimulator() {
       </View>
 
       {/* Line Chart */}
-      <View className="items-center -mx-4">
+      <View className="items-center">
         <LineChart
           data={chartData}
-          width={Dimensions.get("window").width - 32}
-          height={240}
+          width={Dimensions.get("window").width - 64}
+          height={220}
           chartConfig={{
             backgroundColor: "#171717",
             backgroundGradientFrom: "#171717",

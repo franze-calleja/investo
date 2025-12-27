@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { useAssetCagr } from "../src/hooks/useAssetCagr";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
+import { RateKeypad } from "./RateKeypad";
 
 export function MarketSelector() {
   const assetRate = useInvestmentStore((state) => state.assetRate);
@@ -62,14 +63,12 @@ export function MarketSelector() {
 
       <View className="gap-3">
         <Text className="text-neutral-300">Manual rate override (%)</Text>
-        <TextInput
-          value={manualRate}
-          onChangeText={setManualRate}
-          keyboardType="decimal-pad"
-          placeholder="Leave blank to use API/fallback"
-          placeholderTextColor="#6b7280"
-          className="bg-neutral-800 text-white rounded-xl px-4 py-3"
-        />
+        <View className="bg-neutral-800 text-white rounded-xl px-4 py-3 min-h-[52px] justify-center">
+          <Text className="text-white text-base">
+            {manualRate || "Leave blank to use API/fallback"}
+          </Text>
+        </View>
+        <RateKeypad value={manualRate} onChange={setManualRate} />
       </View>
 
       <View className="bg-neutral-800 rounded-2xl p-4 gap-2">
