@@ -2,6 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { Dimensions, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
+import { formatCurrency } from "../src/lib/formatCurrency";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
 function formatNumber(value: number) {
@@ -31,6 +32,7 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
   const inflationAdjusted = useInvestmentStore((state) => state.inflationAdjusted);
   const comparisonEnabled = useInvestmentStore((state) => state.comparisonEnabled);
   const comparisonRate = useInvestmentStore((state) => state.comparisonRate);
+  const currency = useInvestmentStore((state) => state.currency);
 
   const derived = useMemo(() => {
     const netIncome = computeNetIncome(income, deductionPct);
@@ -161,12 +163,12 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
       <View style={{ gap: 12 }}>
         <Card
           label="Total Portfolio Value"
-          value={`₱${formatNumber(derived.growth.futureValue)}`}
+          value={formatCurrency(derived.growth.futureValue, currency.code, currency.symbol)}
           accent="#22c55e"
         />
-        <Card label="Total Contributions" value={`₱${formatNumber(derived.growth.principal)}`} />
-        <Card label="Total Interest Earned" value={`₱${formatNumber(derived.growth.interest)}`} />
-        <Card label="Monthly Passive Income" value={`₱${formatNumber(derived.passiveIncome)}`} />
+        <Card label="Total Contributions" value={formatCurrency(derived.growth.principal, currency.code, currency.symbol)} />
+        <Card label="Total Interest Earned" value={formatCurrency(derived.growth.interest, currency.code, currency.symbol)} />
+        <Card label="Monthly Passive Income" value={formatCurrency(derived.passiveIncome, currency.code, currency.symbol)} />
       </View>
 
       {/* Footer */}

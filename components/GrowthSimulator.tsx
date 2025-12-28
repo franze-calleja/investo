@@ -5,13 +5,11 @@ import { Dimensions, Pressable, Switch, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import Animated, { FadeIn, useSharedValue } from "react-native-reanimated";
 import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
+import { useCurrencyFormatter } from "../src/lib/formatCurrency";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
-function formatNumber(value: number) {
-  return Math.round(value).toLocaleString();
-}
-
 export function GrowthSimulator() {
+  const formatCurrency = useCurrencyFormatter();
   const horizonYears = useInvestmentStore((state) => state.horizonYears);
   const setHorizonYears = useInvestmentStore((state) => state.setHorizonYears);
   const [displayHorizon, setDisplayHorizon] = useState(horizonYears);
@@ -333,12 +331,12 @@ export function GrowthSimulator() {
         <Animated.View entering={FadeIn.duration(300)} className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-2xl gap-2">
           <Text className="text-sm font-semibold text-amber-400">Opportunity Gap</Text>
           <Text className="text-2xl font-bold text-white">
-            ₱{formatNumber(Math.abs(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue))}
+            {formatCurrency(Math.abs(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue))}
           </Text>
           <Text className="text-xs text-neutral-400">
             {derived.effectiveRate > comparisonRate 
-              ? `You'd earn ₱${formatNumber(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue)} MORE with your main scenario`
-              : `You'd earn ₱${formatNumber(computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue - derived.growth.futureValue)} MORE with the comparison scenario`
+              ? `You'd earn ${formatCurrency(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue)} MORE with your main scenario`
+              : `You'd earn ${formatCurrency(computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue - derived.growth.futureValue)} MORE with the comparison scenario`
             }
           </Text>
         </Animated.View>
@@ -358,13 +356,13 @@ export function GrowthSimulator() {
 
       <View className="gap-2 p-4 bg-neutral-800 rounded-2xl">
         <Text className="text-sm text-neutral-300">Projected total value</Text>
-        <Text className="text-3xl font-semibold text-white">₱{formatNumber(derived.growth.futureValue)}</Text>
+        <Text className="text-3xl font-semibold text-white">{formatCurrency(derived.growth.futureValue)}</Text>
         <Text className="text-sm text-neutral-400">
-          Based on monthly savings ₱{formatNumber(derived.savingsMonthly)} at {derived.effectiveRate}% annual
+          Based on monthly savings {formatCurrency(derived.savingsMonthly)} at {derived.effectiveRate}% annual
           {derived.inflationRate > 0 && " (inflation-adjusted)"}
         </Text>
         {lumpSum > 0 && (
-          <Text className="text-xs text-neutral-400">+ Starting lump sum ₱{formatNumber(lumpSum)}</Text>
+          <Text className="text-xs text-neutral-400">+ Starting lump sum {formatCurrency(lumpSum)}</Text>
         )}
       </View>
 
@@ -381,11 +379,11 @@ export function GrowthSimulator() {
               <View className="gap-1">
                 <Text className="text-base font-semibold text-white">Year {milestone.year}</Text>
                 <View className="flex-row gap-2">
-                  <Text className="text-xs text-emerald-400">₱{formatNumber(milestone.principal)} saved</Text>
-                  <Text className="text-xs text-amber-400">+ ₱{formatNumber(milestone.interest)} interest</Text>
+                  <Text className="text-xs text-emerald-400">{formatCurrency(milestone.principal)} saved</Text>
+                  <Text className="text-xs text-amber-400">+ {formatCurrency(milestone.interest)} interest</Text>
                 </View>
               </View>
-              <Text className="text-lg font-bold text-white">₱{formatNumber(milestone.futureValue)}</Text>
+              <Text className="text-lg font-bold text-white">{formatCurrency(milestone.futureValue)}</Text>
             </Animated.View>
           ))}
         </View>

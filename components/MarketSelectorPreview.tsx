@@ -21,8 +21,8 @@ export function MarketSelectorPreview({ defaultSymbol = "SPX" }: Props) {
   return (
     <View className="gap-6">
       <View className="gap-2">
-        <Text className="text-white text-2xl font-semibold">Market Selector (preview)</Text>
-        <Text className="text-neutral-400 text-sm">
+        <Text className="text-2xl font-semibold text-white">Market Selector (preview)</Text>
+        <Text className="text-sm text-neutral-400">
           Enter a symbol to fetch its approximate CAGR. Manual rate override always wins.
         </Text>
       </View>
@@ -35,7 +35,7 @@ export function MarketSelectorPreview({ defaultSymbol = "SPX" }: Props) {
           autoCapitalize="characters"
           placeholder="e.g., SPX or AAPL"
           placeholderTextColor="#6b7280"
-          className="bg-neutral-900 text-white rounded-xl px-4 py-3"
+          className="px-4 py-3 text-white bg-neutral-900 rounded-xl"
         />
       </View>
 
@@ -47,31 +47,31 @@ export function MarketSelectorPreview({ defaultSymbol = "SPX" }: Props) {
           keyboardType="decimal-pad"
           placeholder="Leave blank to use API/fallback"
           placeholderTextColor="#6b7280"
-          className="bg-neutral-900 text-white rounded-xl px-4 py-3"
+          className="px-4 py-3 text-white bg-neutral-900 rounded-xl"
         />
       </View>
 
       <Pressable
         onPress={refetch}
-        className="bg-emerald-500 active:bg-emerald-600 rounded-xl px-4 py-3 items-center"
+        className="items-center px-4 py-3 bg-emerald-500 active:bg-emerald-600 rounded-xl"
       >
-        <Text className="text-white font-semibold">Refresh rate</Text>
+        <Text className="font-semibold text-white">Refresh rate</Text>
       </Pressable>
 
-      <View className="bg-neutral-900 rounded-2xl p-4 gap-2">
+      <View className="gap-2 p-4 bg-neutral-900 rounded-2xl">
         <View className="flex-row items-center gap-2">
-          <Text className="text-white text-lg font-semibold">Rate</Text>
-          {isLoading && <Text className="text-amber-400 text-sm">Loading…</Text>}
-          {isFallback && <Text className="text-orange-400 text-xs">Using fallback rate</Text>}
+          <Text className="text-lg font-semibold text-white">Rate</Text>
+          {isLoading && <Text className="text-sm text-amber-400">Loading…</Text>}
+          {isFallback && <Text className="text-xs text-orange-400">Using fallback rate</Text>}
         </View>
-        {isError && !data && <Text className="text-red-400 text-sm">{String(error)}</Text>}
+        {isError && !data && <Text className="text-sm text-red-400">{String(error)}</Text>}
         {effectiveRate !== undefined ? (
-          <Text className="text-3xl text-emerald-400 font-semibold">{effectiveRate}%</Text>
+          <Text className="text-3xl font-semibold text-emerald-400">{effectiveRate}%</Text>
         ) : (
           <Text className="text-neutral-500">No rate available yet.</Text>
         )}
         {data && (
-          <Text className="text-neutral-400 text-sm">
+          <Text className="text-sm text-neutral-400">
             Source: {data.source} • symbol {data.symbol} • span ~
             {data.yearsUsed ? data.yearsUsed.toFixed(1) : "n/a"}y
           </Text>

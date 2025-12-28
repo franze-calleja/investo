@@ -5,6 +5,7 @@ import { Dimensions, Pressable, Switch, Text, View } from "react-native";
 import { PieChart } from "react-native-chart-kit";
 import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { clamp, computeNetIncome, computeSplitAmounts } from "../src/lib/calculations";
+import { useCurrencyFormatter } from "../src/lib/formatCurrency";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 import { IncomeKeypad } from "./IncomeKeypad";
 
@@ -17,6 +18,7 @@ const TRACK_COLORS = {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function BudgetSplitter() {
+  const formatCurrency = useCurrencyFormatter();
   const [showDeduction, setShowDeduction] = useState(false);
   const [showKeypad, setShowKeypad] = useState(false);
   const [showLumpSumKeypad, setShowLumpSumKeypad] = useState(false);
@@ -26,6 +28,7 @@ export function BudgetSplitter() {
   const resetScale = useSharedValue(1);
 
   const income = useInvestmentStore((state) => state.income);
+  const currency = useInvestmentStore((state) => state.currency);
   const deductionPct = useInvestmentStore((state) => state.deductionPct);
   const split = useInvestmentStore((state) => state.split);
   const lumpSum = useInvestmentStore((state) => state.lumpSum);
@@ -181,7 +184,7 @@ export function BudgetSplitter() {
           }))}
         >
           <Text className="text-white text-lg">
-            {income ? `₱${income.toLocaleString()}` : "Tap to enter income"}
+            {income ? formatCurrency(income) : "Tap to enter income"}
           </Text>
         </AnimatedPressable>
       </View>
@@ -219,7 +222,7 @@ export function BudgetSplitter() {
           }))}
         >
           <Text className="text-white text-lg">
-            {lumpSum ? `₱${lumpSum.toLocaleString()}` : "Tap to add initial investment"}
+            {lumpSum ? formatCurrency(lumpSum) : "Tap to add initial investment"}
           </Text>
         </AnimatedPressable>
       </View>
@@ -253,7 +256,7 @@ export function BudgetSplitter() {
           <View key={item.key} className="gap-2">
             <View className="flex-row justify-between items-center">
               <Text className="text-white font-semibold">{item.label}</Text>
-              <Text className="text-white">{item.pct.toFixed(0)}% • ₱{Math.round(item.amount).toLocaleString()}</Text>
+              <Text className="text-white">{item.pct.toFixed(0)}% • {formatCurrency(item.amount)}</Text>
             </View>
             <Slider
               value={item.pct}
@@ -303,11 +306,11 @@ export function BudgetSplitter() {
 
       <Animated.View className="flex-row justify-between" entering={FadeIn.duration(300).delay(100)}>
         <Text className="text-neutral-400">Net income</Text>
-        <Text className="text-white font-semibold">₱{Math.round(derived.netIncome).toLocaleString()}</Text>
+        <Text className="text-white font-semibold">{formatCurrency(derived.netIncome)}</Text>
       </Animated.View>
       <Animated.View className="flex-row justify-between" entering={FadeIn.duration(300).delay(200)}>
         <Text className="text-neutral-400">Savings monthly</Text>
-        <Text className="text-emerald-400 font-semibold">₱{Math.round(derived.savingsMonthly).toLocaleString()}</Text>
+        <Text className="text-emerald-400 font-semibold">{formatCurrency(derived.savingsMonthly)}</Text>
       </Animated.View>
     </Animated.View>
   );

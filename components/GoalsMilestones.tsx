@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { computeFutureValueMonthly, computeNetIncome, computeSplitAmounts } from "../src/lib/calculations";
+import { useCurrencyFormatter } from "../src/lib/formatCurrency";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
 interface Milestone {
@@ -23,18 +24,20 @@ const MILESTONES: Milestone[] = [
   { threshold: 50000000, title: "Generational Wealth", icon: "👑", description: "Legacy secured" },
 ];
 
-function formatCurrency(value: number): string {
-  if (value >= 1000000) {
-    return `₱${(value / 1000000).toFixed(1)}M`;
-  }
-  if (value >= 1000) {
-    return `₱${(value / 1000).toFixed(0)}k`;
-  }
-  return `₱${value.toLocaleString()}`;
-}
-
 export function GoalsMilestones() {
+  const formatCurrency = useCurrencyFormatter();
   const income = useInvestmentStore((state) => state.income);
+  const currency = useInvestmentStore((state) => state.currency);
+
+  const formatCurrencyShort = (value: number): string => {
+    if (value >= 1000000) {
+      return `${currency.symbol}${(value / 1000000).toFixed(1)}M`;
+    }
+    if (value >= 1000) {
+      return `${currency.symbol}${(value / 1000).toFixed(0)}k`;
+    }
+    return formatCurrency(value);
+  };
   const deductionPct = useInvestmentStore((state) => state.deductionPct);
   const split = useInvestmentStore((state) => state.split);
   const manualRatePct = useInvestmentStore((state) => state.manualRatePct);
@@ -68,7 +71,7 @@ export function GoalsMilestones() {
         </Text>
         <View className="p-4 mt-2 bg-neutral-800 rounded-xl">
           <Text className="mb-1 text-sm text-neutral-400">Current Projected Value</Text>
-          <Text className="text-3xl font-bold text-emerald-400">{formatCurrency(currentValue)}</Text>
+          <Text className="text-3xl font-bold text-emerald-400">{formatCurrencyShort(currentValue)}</Text>
         </View>
       </Animated.View>
 
@@ -110,7 +113,7 @@ export function GoalsMilestones() {
                   <Text className="text-sm text-neutral-400">{milestone.description}</Text>
 
                   <View className="flex-row items-center justify-between mt-1">
-                    <Text className="text-xs text-neutral-500">{formatCurrency(milestone.threshold)}</Text>
+                    <Text className="text-xs text-neutral-500">{formatCurrencyShort(milestone.threshold)}</Text>
                     {!isAchieved && (
                       <Text className="text-xs text-neutral-500">{progress.toFixed(0)}% there</Text>
                     )}
@@ -149,7 +152,7 @@ export function GoalsMilestones() {
                   {nextMilestone.icon} {nextMilestone.title}
                 </Text>
                 <Text className="text-sm text-neutral-400">
-                  {formatCurrency(remaining)} away from unlocking
+                  {formatCurrencyShort(remaining)} away from unlocking
                 </Text>
               </View>
             );

@@ -15,6 +15,12 @@ type AssetRate = {
   source?: "api" | "fallback";
 };
 
+type Currency = {
+  code: string;
+  symbol: string;
+  name: string;
+};
+
 type InvestmentState = {
   income: number;
   deductionPct: number;
@@ -26,6 +32,7 @@ type InvestmentState = {
   inflationAdjusted: boolean;
   comparisonEnabled: boolean;
   comparisonRate: number;
+  currency: Currency;
 };
 
 type InvestmentActions = {
@@ -40,11 +47,21 @@ type InvestmentActions = {
   setInflationAdjusted: (value: boolean) => void;
   setComparisonEnabled: (value: boolean) => void;
   setComparisonRate: (value: number) => void;
+  setCurrency: (value: Currency) => void;
 };
 
 type InvestmentStore = InvestmentState & InvestmentActions;
 
 const defaultSplit: Split = { needsPct: 50, wantsPct: 30, savingsPct: 20 };
+
+export const CURRENCIES: Currency[] = [
+  { code: "PHP", symbol: "₱", name: "Philippine Peso" },
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "British Pound" },
+  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
+];
 
 function rebalanceSplit(current: Split, changedKey: keyof Split, newValue: number): Split {
   const value = clamp(newValue, 0, 100);
@@ -84,6 +101,7 @@ export const useInvestmentStore = create<InvestmentStore>()(
       inflationAdjusted: false,
       comparisonEnabled: false,
       comparisonRate: 1,
+      currency: CURRENCIES[0],
 
       setIncome: (value) => set({ income: Math.max(0, value) }),
       setDeductionPct: (value) => set({ deductionPct: clamp(value, 0, 60) }),
@@ -98,7 +116,8 @@ export const useInvestmentStore = create<InvestmentStore>()(
       setLumpSum: (value) => set({ lumpSum: Math.max(0, value) }),
       setInflationAdjusted: (value) => set({ inflationAdjusted: value }),
       setComparisonEnabled: (value) => set({ comparisonEnabled: value }),
-      setComparisonRate: (value) => set({ comparisonRate: Math.max(0, value) })
+      setComparisonRate: (value) => set({ comparisonRate: Math.max(0, value) }),
+      setCurrency: (value) => set({ currency: value })
     }),
     {
       name: "investo-storage",

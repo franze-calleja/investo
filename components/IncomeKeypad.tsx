@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import Animated, { FadeIn, SlideInDown, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -17,6 +18,7 @@ interface IncomeKeypadProps {
 export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0, title = "Monthly Income" }: IncomeKeypadProps) {
   const [value, setValue] = useState(initialValue.toString());
   const submitScale = useSharedValue(1);
+  const currency = useInvestmentStore((state) => state.currency);
 
   const numValue = Number(value) || 0;
   const isVeryHigh = numValue > 500000;
@@ -63,7 +65,7 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0, tit
           <View className="p-6 bg-neutral-800 rounded-2xl">
             <Text className="mb-2 text-sm text-neutral-400">Amount</Text>
             <Text className="text-4xl font-bold text-white">
-              ₱{value ? Number(value).toLocaleString() : "0"}
+              {currency.symbol}{value ? Number(value).toLocaleString() : "0"}
             </Text>
             {isVeryHigh && (
               <Text className="mt-2 text-xs text-amber-400">⚠️ That's quite high! Double check your amount</Text>
