@@ -1,47 +1,62 @@
-import { useMemo } from "react";
-import { Text, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
-import { computeFutureValueMonthly, computeNetIncome, computePassiveIncome, computeSplitAmounts } from "../src/lib/calculations";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import * as Sharing from "expo-sharing";
+import { useRef } from "react";
+import { Alert, Pressable, Text, View } from "react-native";
+import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { captureRef } from "react-native-view-shot";
 import { useInvestmentStore } from "../src/state/useInvestmentStore";
+import { ShareableCard } from "./ShareableCard";
 
-function Card({ label, value, accent }: { label: string; value: string; accent?: string }) {
-  return (
-    <View className="bg-neutral-900 rounded-2xl p-4 gap-1" style={accent ? { borderColor: accent, borderWidth: 1 } : undefined}>
-      <Text className="text-neutral-400 text-sm">{label}</Text>
-      <Text className="text-white text-xl font-semibold">{value}</Text>
-    </View>
-  );
-}
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function DetailsDashboard() {
+  const viewRef = useRef<View>(null);
+  const shareScale = useSharedValue(1);
   const income = useInvestmentStore((state) => state.income);
-  const deductionPct = useInvestmentStore((state) => state.deductionPct);
-  const split = useInvestmentStore((state) => state.split);
-  const horizonYears = useInvestmentStore((state) => state.horizonYears);
-  const manualRatePct = useInvestmentStore((state) => state.manualRatePct);
-  const assetRate = useInvestmentStore((state) => state.assetRate);
-  const lumpSum = useInvestmentStore((state) => state.lumpSum);
-  const inflationAdjusted = useInvestmentStore((state) => state.inflationAdjusted);
 
-  const derived = useMemo(() => {
-    const netIncome = computeNetIncome(income, deductionPct);
-    const splitAmounts = computeSplitAmounts(netIncome, split);
-    const savingsMonthly = splitAmounts.savings;
-    const baseRate = manualRatePct ?? assetRate.cagrPct ?? 0;
-    const inflationRate = inflationAdjusted ? 3.5 : 0;
-    const effectiveRate = Math.max(baseRate - inflationRate, 0);
-    const growth = computeFutureValueMonthly(savingsMonthly, effectiveRate, horizonYears, lumpSum);
-    const passiveIncome = computePassiveIncome(growth.futureValue, effectiveRate);
-    return { growth, passiveIncome };
-  }, [income, deductionPct, split, horizonYears, manualRatePct, assetRate.cagrPct, lumpSum, inflationAdjusted]);
+  const handleShare = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      
+      if (!viewRef.current) {
+        Alert.alert("Error", "View reference not found");
+        return;
+      }
+
+      // Delay to ensure chart rendering is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const uri = await captureRef(viewRef, {
+        format: "png",
+        quality: 1,
+        result: "tmpfile",
+      });
+
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert("Sharing not available", "Sharing is not supported on this device");
+        return;
+      }
+
+      await Sharing.shareAsync(uri, {
+        mimeType: "image/png",
+        dialogTitle: "Share Your Investment Plan",
+        UTI: "public.png",
+      });
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error: any) {
+      Alert.alert("Error", `Failed to share: ${error?.message || error}`);
+    }
+  };
 
   if (income === 0) {
     return (
       <Animated.View className="gap-3" entering={FadeIn.duration(300)}>
-        <Text className="text-white text-xl font-semibold">Details Dashboard</Text>
-        <View className="bg-neutral-900 rounded-2xl p-8 items-center gap-3">
-          <Text className="text-neutral-500 text-center text-lg">💰</Text>
-          <Text className="text-neutral-400 text-center">Set your monthly income in the Setup tab to see your investment projections</Text>
+        <Text className="text-xl font-semibold text-white">Details Dashboard</Text>
+        <View className="items-center gap-3 p-8 bg-neutral-900 rounded-2xl">
+          <Text className="text-lg text-center text-neutral-500">💰</Text>
+          <Text className="text-center text-neutral-400">Set your monthly income in the Setup tab to see your investment projections</Text>
         </View>
       </Animated.View>
     );
@@ -49,13 +64,26 @@ export function DetailsDashboard() {
 
   return (
     <Animated.View className="gap-3" entering={FadeIn.duration(300)}>
-      <Text className="text-white text-xl font-semibold">Details Dashboard</Text>
-      <View className="gap-3">
-        <Card label="Total Portfolio Value" value={`₱${Math.round(derived.growth.futureValue).toLocaleString()}`} accent="#22c55e" />
-        <Card label="Total Contributions" value={`₱${Math.round(derived.growth.principal).toLocaleString()}`} />
-        <Card label="Total Interest Earned" value={`₱${Math.round(derived.growth.interest).toLocaleString()}`} />
-        <Card label="Monthly Passive Income" value={`₱${Math.round(derived.passiveIncome).toLocaleString()}`} />
+      <View className="flex-row items-center justify-between">
+        <Text className="text-xl font-semibold text-white">Details Dashboard</Text>
+        <AnimatedPressable
+          onPressIn={() => {
+            shareScale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+          }}
+          onPressOut={() => {
+            shareScale.value = withSpring(1, { damping: 15, stiffness: 400 });
+          }}
+          onPress={handleShare}
+          className="flex-row items-center gap-2 px-4 py-2 bg-emerald-500 rounded-xl"
+          style={useAnimatedStyle(() => ({
+            transform: [{ scale: shareScale.value }]
+          }))}
+        >
+          <Ionicons name="share-outline" size={18} color="#fff" />
+          <Text className="font-semibold text-white">Share</Text>
+        </AnimatedPressable>
       </View>
+      <ShareableCard ref={viewRef} />
     </Animated.View>
   );
 }
