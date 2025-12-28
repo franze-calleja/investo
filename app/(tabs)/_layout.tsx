@@ -59,6 +59,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="scenarios"
+        options={{
+          title: "Scenarios",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="file-tray-stacked-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="details"
         options={{
           title: "Details",
