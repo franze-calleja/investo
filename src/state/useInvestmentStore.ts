@@ -21,6 +21,25 @@ type Currency = {
   name: string;
 };
 
+type Scenario = {
+  id: string;
+  name: string;
+  createdAt: number;
+  data: {
+    income: number;
+    deductionPct: number;
+    split: Split;
+    horizonYears: number;
+    manualRatePct: number | null;
+    assetRate: AssetRate;
+    lumpSum: number;
+    inflationAdjusted: boolean;
+    comparisonEnabled: boolean;
+    comparisonRate: number;
+    currency: Currency;
+  };
+};
+
 type InvestmentState = {
   income: number;
   deductionPct: number;
@@ -33,6 +52,7 @@ type InvestmentState = {
   comparisonEnabled: boolean;
   comparisonRate: number;
   currency: Currency;
+  scenarios: Scenario[];
 };
 
 type InvestmentActions = {
@@ -48,6 +68,10 @@ type InvestmentActions = {
   setComparisonEnabled: (value: boolean) => void;
   setComparisonRate: (value: number) => void;
   setCurrency: (value: Currency) => void;
+  saveScenario: (name: string) => void;
+  loadScenario: (id: string) => void;
+  deleteScenario: (id: string) => void;
+  renameScenario: (id: string, newName: string) => void;
 };
 
 type InvestmentStore = InvestmentState & InvestmentActions;
@@ -102,6 +126,7 @@ export const useInvestmentStore = create<InvestmentStore>()(
       comparisonEnabled: false,
       comparisonRate: 1,
       currency: CURRENCIES[0],
+      scenarios: [],
 
       setIncome: (value) => set({ income: Math.max(0, value) }),
       setDeductionPct: (value) => set({ deductionPct: clamp(value, 0, 60) }),
@@ -117,7 +142,47 @@ export const useInvestmentStore = create<InvestmentStore>()(
       setInflationAdjusted: (value) => set({ inflationAdjusted: value }),
       setComparisonEnabled: (value) => set({ comparisonEnabled: value }),
       setComparisonRate: (value) => set({ comparisonRate: Math.max(0, value) }),
-      setCurrency: (value) => set({ currency: value })
+      setCurrency: (value) => set({ currency: value }),
+      
+      saveScenario: (name) => set((state) => ({
+        scenarios: [
+          ...state.scenarios,
+          {
+            id: `scenario-${Date.now()}`,
+            name,
+            createdAt: Date.now(),
+            data: {
+              income: state.income,
+              deductionPct: state.deductionPct,
+              split: state.split,
+              horizonYears: state.horizonYears,
+              manualRatePct: state.manualRatePct,
+              assetRate: state.assetRate,
+              lumpSum: state.lumpSum,
+              inflationAdjusted: state.inflationAdjusted,
+              comparisonEnabled: state.comparisonEnabled,
+              comparisonRate: state.comparisonRate,
+              currency: state.currency,
+            },
+          },
+        ],
+      })),
+      
+      loadScenario: (id) => set((state) => {
+        const scenario = state.scenarios.find((s) => s.id === id);
+        if (!scenario) return state;
+        return { ...scenario.data };
+      }),
+      
+      deleteScenario: (id) => set((state) => ({
+        scenarios: state.scenarios.filter((s) => s.id !== id),
+      })),
+      
+      renameScenario: (id, newName) => set((state) => ({
+        scenarios: state.scenarios.map((s) => 
+          s.id === id ? { ...s, name: newName } : s
+        ),
+      })),
     }),
     {
       name: "investo-storage",

@@ -8,6 +8,7 @@ import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from "
 import { captureRef } from "react-native-view-shot";
 import { selectDerived, useInvestmentStore } from "../src/state/useInvestmentStore";
 import { CurrencySelector } from "./CurrencySelector";
+import { ScenariosManager } from "./ScenariosManager";
 import { ShareableCard } from "./ShareableCard";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -16,9 +17,11 @@ export function DetailsDashboard() {
   const viewRef = useRef<View>(null);
   const shareScale = useSharedValue(1);
   const currencyScale = useSharedValue(1);
+  const scenariosScale = useSharedValue(1);
   const income = useInvestmentStore((state) => state.income);
   const currency = useInvestmentStore((state) => state.currency);
   const [showCurrencySelector, setShowCurrencySelector] = useState(false);
+  const [showScenariosManager, setShowScenariosManager] = useState(false);
 
   const generatePDFHTML = () => {
     const state = useInvestmentStore.getState();
@@ -241,6 +244,24 @@ export function DetailsDashboard() {
         <View className="flex-row gap-2">
           <AnimatedPressable
             onPressIn={() => {
+              scenariosScale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+            }}
+            onPressOut={() => {
+              scenariosScale.value = withSpring(1, { damping: 15, stiffness: 400 });
+            }}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowScenariosManager(true);
+            }}
+            className="flex-row items-center gap-2 px-3 py-2 bg-neutral-800 rounded-xl"
+            style={useAnimatedStyle(() => ({
+              transform: [{ scale: scenariosScale.value }]
+            }))}
+          >
+            <Ionicons name="file-tray-stacked-outline" size={18} color="#a3a3a3" />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPressIn={() => {
               currencyScale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
             }}
             onPressOut={() => {
@@ -280,6 +301,10 @@ export function DetailsDashboard() {
       <CurrencySelector 
         visible={showCurrencySelector} 
         onClose={() => setShowCurrencySelector(false)} 
+      />
+      <ScenariosManager
+        visible={showScenariosManager}
+        onClose={() => setShowScenariosManager(false)}
       />
     </Animated.View>
   );
