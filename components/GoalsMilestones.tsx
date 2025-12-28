@@ -26,6 +26,8 @@ const MILESTONES: Milestone[] = [
 
 export function GoalsMilestones() {
   const formatCurrency = useCurrencyFormatter();
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
   const income = useInvestmentStore((state) => state.income);
   const currency = useInvestmentStore((state) => state.currency);
 
@@ -65,12 +67,12 @@ export function GoalsMilestones() {
     <>
       {/* Header */}
       <Animated.View className="gap-2 mb-4" entering={FadeIn.duration(300)}>
-        <Text className="text-3xl font-bold text-white">Goal Milestones</Text>
-        <Text className="text-neutral-400">
+        <Text className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Goal Milestones</Text>
+        <Text className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>
           Track your progress • {achievedCount} of {MILESTONES.length} unlocked
         </Text>
-        <View className="p-4 mt-2 bg-neutral-800 rounded-xl">
-          <Text className="mb-1 text-sm text-neutral-400">Current Projected Value</Text>
+        <View className={`p-4 mt-2 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+          <Text className={`mb-1 text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Current Projected Value</Text>
           <Text className="text-3xl font-bold text-emerald-400">{formatCurrencyShort(currentValue)}</Text>
         </View>
       </Animated.View>
@@ -86,14 +88,14 @@ export function GoalsMilestones() {
               key={milestone.threshold}
               entering={FadeIn.duration(400).delay(index * 50)}
               className={`rounded-2xl p-5 ${
-                isAchieved ? "bg-emerald-900/40 border-2 border-emerald-500/50" : "bg-neutral-900 border border-neutral-800"
+                isAchieved ? "bg-emerald-900/40 border-2 border-emerald-500/50" : isDark ? "bg-neutral-900 border border-neutral-800" : "bg-white border border-neutral-200"
               }`}
             >
               <View className="flex-row items-start gap-4">
                 {/* Icon */}
                 <View
                   className={`w-16 h-16 rounded-2xl items-center justify-center ${
-                    isAchieved ? "bg-emerald-500/20" : "bg-neutral-800"
+                    isAchieved ? "bg-emerald-500/20" : isDark ? "bg-neutral-800" : "bg-neutral-100"
                   }`}
                 >
                   <Text className="text-4xl" style={{ opacity: isAchieved ? 1 : 0.3 }}>
@@ -104,24 +106,24 @@ export function GoalsMilestones() {
                 {/* Content */}
                 <View className="flex-1 gap-2">
                   <View className="flex-row items-center gap-2">
-                    <Text className={`text-lg font-bold ${isAchieved ? "text-emerald-400" : "text-white"}`}>
+                    <Text className={`text-lg font-bold ${isAchieved ? "text-emerald-400" : isDark ? "text-white" : "text-neutral-900"}`}>
                       {milestone.title}
                     </Text>
                     {isAchieved && <Text className="text-xl text-emerald-400">✓</Text>}
                   </View>
 
-                  <Text className="text-sm text-neutral-400">{milestone.description}</Text>
+                  <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>{milestone.description}</Text>
 
                   <View className="flex-row items-center justify-between mt-1">
-                    <Text className="text-xs text-neutral-500">{formatCurrencyShort(milestone.threshold)}</Text>
+                    <Text className={`text-xs ${isDark ? 'text-neutral-500' : 'text-neutral-600'}`}>{formatCurrencyShort(milestone.threshold)}</Text>
                     {!isAchieved && (
-                      <Text className="text-xs text-neutral-500">{progress.toFixed(0)}% there</Text>
+                      <Text className={`text-xs ${isDark ? 'text-neutral-500' : 'text-neutral-600'}`}>{progress.toFixed(0)}% there</Text>
                     )}
                   </View>
 
                   {/* Progress Bar */}
                   {!isAchieved && (
-                    <View className="h-2 mt-1 overflow-hidden rounded-full bg-neutral-800">
+                    <View className={`h-2 mt-1 overflow-hidden rounded-full ${isDark ? 'bg-neutral-800' : 'bg-neutral-200'}`}>
                       <View
                         className="h-full rounded-full bg-emerald-500/50"
                         style={{ width: `${progress}%` }}
@@ -138,10 +140,10 @@ export function GoalsMilestones() {
       {/* Motivational Footer */}
       {achievedCount < MILESTONES.length && (
         <Animated.View
-          className="p-6 mt-6 border bg-neutral-900 rounded-2xl border-neutral-800"
+          className={`p-6 mt-6 border rounded-2xl ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}
           entering={FadeIn.duration(400).delay(500)}
         >
-          <Text className="mb-2 font-semibold text-white">Next Milestone</Text>
+          <Text className={`mb-2 font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Next Milestone</Text>
           {(() => {
             const nextMilestone = MILESTONES.find((m) => currentValue < m.threshold);
             if (!nextMilestone) return null;
@@ -151,7 +153,7 @@ export function GoalsMilestones() {
                 <Text className="text-xl text-emerald-400">
                   {nextMilestone.icon} {nextMilestone.title}
                 </Text>
-                <Text className="text-sm text-neutral-400">
+                <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                   {formatCurrencyShort(remaining)} away from unlocking
                 </Text>
               </View>
@@ -166,8 +168,8 @@ export function GoalsMilestones() {
           entering={FadeIn.duration(400).delay(500)}
         >
           <Text className="mb-2 text-3xl text-center">🎉</Text>
-          <Text className="mb-2 text-xl font-bold text-center text-white">All Milestones Unlocked!</Text>
-          <Text className="text-center text-neutral-300">
+          <Text className={`mb-2 text-xl font-bold text-center ${isDark ? 'text-white' : 'text-neutral-900'}`}>All Milestones Unlocked!</Text>
+          <Text className={`text-center ${isDark ? 'text-neutral-300' : 'text-neutral-600'}`}>
             You've reached every goal. Time to set even bigger dreams! 🚀
           </Text>
         </Animated.View>

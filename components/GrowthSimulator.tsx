@@ -10,6 +10,8 @@ import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
 export function GrowthSimulator() {
   const formatCurrency = useCurrencyFormatter();
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
   const horizonYears = useInvestmentStore((state) => state.horizonYears);
   const setHorizonYears = useInvestmentStore((state) => state.setHorizonYears);
   const [displayHorizon, setDisplayHorizon] = useState(horizonYears);
@@ -140,31 +142,31 @@ export function GrowthSimulator() {
 
   if (income === 0) {
     return (
-      <Animated.View className="gap-5 p-4 bg-neutral-900 rounded-2xl" entering={FadeIn.duration(300)}>
+      <Animated.View className={`gap-5 p-4 rounded-2xl ${isDark ? 'bg-neutral-900' : 'bg-white'}`} entering={FadeIn.duration(300)}>
         <View className="gap-1">
-          <Text className="text-xl font-semibold text-white">Growth Simulator</Text>
-          <Text className="text-sm text-neutral-400">Time horizon with principal vs interest visual</Text>
+          <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Growth Simulator</Text>
+          <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Time horizon with principal vs interest visual</Text>
         </View>
-        <View className="items-center gap-3 p-8 bg-neutral-800 rounded-2xl">
+        <View className={`items-center gap-3 p-8 rounded-2xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
           <Text className="text-4xl text-center text-neutral-500">📈</Text>
-          <Text className="text-center text-neutral-400">Configure your budget and income to see growth projections</Text>
+          <Text className={`text-center ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Configure your budget and income to see growth projections</Text>
         </View>
       </Animated.View>
     );
   }
 
   return (
-    <Animated.View className="gap-5 p-4 bg-neutral-900 rounded-2xl" entering={FadeIn.duration(300)}>
+    <Animated.View className={`gap-5 p-4 rounded-2xl ${isDark ? 'bg-neutral-900' : 'bg-white'}`} entering={FadeIn.duration(300)}>
       <View className="gap-1">
-        <Text className="text-xl font-semibold text-white">Growth Simulator</Text>
-        <Text className="text-sm text-neutral-400">Time horizon with principal vs interest visual</Text>
+        <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Growth Simulator</Text>
+        <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Time horizon with principal vs interest visual</Text>
       </View>
 
       {/* Inflation Toggle */}
-      <View className="flex-row items-center justify-between bg-neutral-800 rounded-xl px-4 py-3">
+      <View className={`flex-row items-center justify-between rounded-xl px-4 py-3 ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
         <View className="flex-1 gap-1">
-          <Text className="text-white font-semibold">Adjust for inflation</Text>
-          <Text className="text-neutral-400 text-xs">Subtracts ~3.5% to show real returns</Text>
+          <Text className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Adjust for inflation</Text>
+          <Text className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Subtracts ~3.5% to show real returns</Text>
         </View>
         <Switch
           value={inflationAdjusted}
@@ -172,16 +174,16 @@ export function GrowthSimulator() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             setInflationAdjusted(value);
           }}
-          trackColor={{ false: "#1f2937", true: "#22c55e" }}
+          trackColor={{ false: isDark ? "#1f2937" : "#d4d4d8", true: "#22c55e" }}
           thumbColor={inflationAdjusted ? "#fff" : "#9ca3af"}
         />
       </View>
 
       {/* Comparison Mode Toggle */}
-      <View className="flex-row items-center justify-between bg-neutral-800 rounded-xl px-4 py-3">
+      <View className={`flex-row items-center justify-between rounded-xl px-4 py-3 ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
         <View className="flex-1 gap-1">
-          <Text className="text-white font-semibold">Compare Scenarios</Text>
-          <Text className="text-neutral-400 text-xs">See side-by-side growth comparison</Text>
+          <Text className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Compare Scenarios</Text>
+          <Text className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>See side-by-side growth comparison</Text>
         </View>
         <Switch
           value={comparisonEnabled}
@@ -189,7 +191,7 @@ export function GrowthSimulator() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             setComparisonEnabled(value);
           }}
-          trackColor={{ false: "#1f2937", true: "#fb923c" }}
+          trackColor={{ false: isDark ? "#1f2937" : "#d4d4d8", true: "#fb923c" }}
           thumbColor={comparisonEnabled ? "#fff" : "#9ca3af"}
         />
       </View>
@@ -197,16 +199,16 @@ export function GrowthSimulator() {
       {/* Comparison Rate Input (shown when comparison is enabled) */}
       {comparisonEnabled && (
         <Animated.View entering={FadeIn.duration(300)} className="gap-3">
-          <Text className="text-neutral-300 font-semibold">Comparison Rate (%)</Text>
+          <Text className={`font-semibold ${isDark ? 'text-neutral-300' : 'text-neutral-600'}`}>Comparison Rate (%)</Text>
           <View className="flex-row gap-2">
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setComparisonRate(1);
               }}
-              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 1 ? 'bg-orange-500' : 'bg-neutral-800'}`}
+              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 1 ? 'bg-orange-500' : isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}
             >
-              <Text className={`text-center font-semibold ${comparisonRate === 1 ? 'text-white' : 'text-neutral-400'}`}>
+              <Text className={`text-center font-semibold ${comparisonRate === 1 ? 'text-white' : isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                 Bank 1%
               </Text>
             </Pressable>
@@ -215,9 +217,9 @@ export function GrowthSimulator() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setComparisonRate(3.5);
               }}
-              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 3.5 ? 'bg-orange-500' : 'bg-neutral-800'}`}
+              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 3.5 ? 'bg-orange-500' : isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}
             >
-              <Text className={`text-center font-semibold ${comparisonRate === 3.5 ? 'text-white' : 'text-neutral-400'}`}>
+              <Text className={`text-center font-semibold ${comparisonRate === 3.5 ? 'text-white' : isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                 Inflation 3.5%
               </Text>
             </Pressable>
@@ -226,15 +228,15 @@ export function GrowthSimulator() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setComparisonRate(5);
               }}
-              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 5 ? 'bg-orange-500' : 'bg-neutral-800'}`}
+              className={`flex-1 px-4 py-3 rounded-xl ${comparisonRate === 5 ? 'bg-orange-500' : isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}
             >
-              <Text className={`text-center font-semibold ${comparisonRate === 5 ? 'text-white' : 'text-neutral-400'}`}>
+              <Text className={`text-center font-semibold ${comparisonRate === 5 ? 'text-white' : isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
                 Bonds 5%
               </Text>
             </Pressable>
           </View>
-          <View className="flex-row items-center gap-3 bg-neutral-800 rounded-xl px-4 py-3">
-            <Text className="text-white font-semibold">Custom:</Text>
+          <View className={`flex-row items-center gap-3 rounded-xl px-4 py-3 ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+            <Text className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Custom:</Text>
             <Slider
               value={comparisonRate}
               onValueChange={(value) => setComparisonRate(Number(value.toFixed(1)))}
@@ -243,7 +245,7 @@ export function GrowthSimulator() {
               maximumValue={20}
               step={0.1}
               minimumTrackTintColor="#fb923c"
-              maximumTrackTintColor="#1f2937"
+              maximumTrackTintColor={isDark ? "#1f2937" : "#e5e7eb"}
               thumbTintColor="#fb923c"
               style={{ flex: 1 }}
             />
@@ -254,8 +256,8 @@ export function GrowthSimulator() {
 
       <View className="gap-2">
         <View className="flex-row items-center justify-between">
-          <Text className="text-neutral-300">Horizon (years)</Text>
-          <Text className="font-semibold text-white">{displayHorizon}y</Text>
+          <Text className={isDark ? 'text-neutral-300' : 'text-neutral-600'}>Horizon (years)</Text>
+          <Text className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{displayHorizon}y</Text>
         </View>
         <Slider
           value={displayHorizon}
@@ -267,7 +269,7 @@ export function GrowthSimulator() {
           maximumValue={50}
           step={1}
           minimumTrackTintColor="#22c55e"
-          maximumTrackTintColor="#1f2937"
+          maximumTrackTintColor={isDark ? "#1f2937" : "#e5e7eb"}
           thumbTintColor="#22c55e"
         />
       </View>
@@ -278,11 +280,11 @@ export function GrowthSimulator() {
           <View className="flex-row gap-4 mb-2 px-4">
             <View className="flex-row items-center gap-2">
               <View className="w-4 h-4 rounded-full bg-emerald-500" />
-              <Text className="text-xs text-neutral-400">Main ({derived.effectiveRate.toFixed(1)}%)</Text>
+              <Text className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Main ({derived.effectiveRate.toFixed(1)}%)</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <View className="w-4 h-4 rounded-full bg-orange-400" />
-              <Text className="text-xs text-neutral-400">Compare ({comparisonRate.toFixed(1)}%)</Text>
+              <Text className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Compare ({comparisonRate.toFixed(1)}%)</Text>
             </View>
           </View>
         )}
@@ -291,12 +293,12 @@ export function GrowthSimulator() {
           width={Dimensions.get("window").width - 64}
           height={220}
           chartConfig={{
-            backgroundColor: "#171717",
-            backgroundGradientFrom: "#171717",
-            backgroundGradientTo: "#171717",
+            backgroundColor: isDark ? "#171717" : "#f9fafb",
+            backgroundGradientFrom: isDark ? "#171717" : "#f9fafb",
+            backgroundGradientTo: isDark ? "#171717" : "#f9fafb",
             decimalPlaces: 0,
             color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(163, 163, 163, ${opacity})`,
+            labelColor: (opacity = 1) => isDark ? `rgba(163, 163, 163, ${opacity})` : `rgba(64, 64, 64, ${opacity})`,
             style: {
               borderRadius: 16,
             },
@@ -307,7 +309,7 @@ export function GrowthSimulator() {
             },
             propsForBackgroundLines: {
               strokeDasharray: "",
-              stroke: "#1f2937",
+              stroke: isDark ? "#1f2937" : "#e5e7eb",
               strokeWidth: 1,
             },
           }}
@@ -328,12 +330,12 @@ export function GrowthSimulator() {
 
       {/* Comparison Difference Display */}
       {comparisonEnabled && (
-        <Animated.View entering={FadeIn.duration(300)} className="p-4 bg-amber-900/20 border border-amber-500/30 rounded-2xl gap-2">
+        <Animated.View entering={FadeIn.duration(300)} className={`p-4 border rounded-2xl gap-2 ${isDark ? 'bg-amber-900/20 border-amber-500/30' : 'bg-amber-50 border-amber-200'}`}>
           <Text className="text-sm font-semibold text-amber-400">Opportunity Gap</Text>
-          <Text className="text-2xl font-bold text-white">
+          <Text className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
             {formatCurrency(Math.abs(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue))}
           </Text>
-          <Text className="text-xs text-neutral-400">
+          <Text className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
             {derived.effectiveRate > comparisonRate 
               ? `You'd earn ${formatCurrency(derived.growth.futureValue - computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue)} MORE with your main scenario`
               : `You'd earn ${formatCurrency(computeFutureValueMonthly(derived.savingsMonthly, comparisonRate, horizonYears, lumpSum).futureValue - derived.growth.futureValue)} MORE with the comparison scenario`
@@ -354,36 +356,36 @@ export function GrowthSimulator() {
         </View>
       </View>
 
-      <View className="gap-2 p-4 bg-neutral-800 rounded-2xl">
-        <Text className="text-sm text-neutral-300">Projected total value</Text>
-        <Text className="text-3xl font-semibold text-white">{formatCurrency(derived.growth.futureValue)}</Text>
-        <Text className="text-sm text-neutral-400">
+      <View className={`gap-2 p-4 rounded-2xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+        <Text className={`text-sm ${isDark ? 'text-neutral-300' : 'text-neutral-600'}`}>Projected total value</Text>
+        <Text className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{formatCurrency(derived.growth.futureValue)}</Text>
+        <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
           Based on monthly savings {formatCurrency(derived.savingsMonthly)} at {derived.effectiveRate}% annual
           {derived.inflationRate > 0 && " (inflation-adjusted)"}
         </Text>
         {lumpSum > 0 && (
-          <Text className="text-xs text-neutral-400">+ Starting lump sum {formatCurrency(lumpSum)}</Text>
+          <Text className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>+ Starting lump sum {formatCurrency(lumpSum)}</Text>
         )}
       </View>
 
       {/* Timeline Breakdown */}
       <View className="gap-3">
-        <Text className="text-sm font-semibold text-neutral-300">Growth Timeline</Text>
+        <Text className={`text-sm font-semibold ${isDark ? 'text-neutral-300' : 'text-neutral-600'}`}>Growth Timeline</Text>
         <View className="gap-2">
           {timelineBreakdown.map((milestone, index) => (
             <Animated.View
               key={milestone.year}
               entering={FadeIn.duration(300).delay(index * 50)}
-              className="flex-row items-center justify-between p-3 bg-neutral-800 rounded-xl"
+              className={`flex-row items-center justify-between p-3 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}
             >
               <View className="gap-1">
-                <Text className="text-base font-semibold text-white">Year {milestone.year}</Text>
+                <Text className={`text-base font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Year {milestone.year}</Text>
                 <View className="flex-row gap-2">
                   <Text className="text-xs text-emerald-400">{formatCurrency(milestone.principal)} saved</Text>
                   <Text className="text-xs text-amber-400">+ {formatCurrency(milestone.interest)} interest</Text>
                 </View>
               </View>
-              <Text className="text-lg font-bold text-white">{formatCurrency(milestone.futureValue)}</Text>
+              <Text className={`text-lg font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{formatCurrency(milestone.futureValue)}</Text>
             </Animated.View>
           ))}
         </View>

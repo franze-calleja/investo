@@ -9,19 +9,21 @@ function formatNumber(value: number) {
   return Math.round(value).toLocaleString();
 }
 
-function Card({ label, value, accent }: { label: string; value: string; accent?: string }) {
+function Card({ label, value, accent, isDark }: { label: string; value: string; accent?: string; isDark: boolean }) {
   return (
     <View
-      className="gap-1 p-4 bg-neutral-900 rounded-2xl"
+      className={`gap-1 p-4 rounded-2xl ${isDark ? 'bg-neutral-900' : 'bg-neutral-100'}`}
       style={accent ? { borderColor: accent, borderWidth: 1 } : undefined}
     >
-      <Text className="text-sm text-neutral-400">{label}</Text>
-      <Text className="text-xl font-semibold text-white">{value}</Text>
+      <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>{label}</Text>
+      <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{value}</Text>
     </View>
   );
 }
 
 export const ShareableCard = forwardRef<View>((props, ref) => {
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
   const income = useInvestmentStore((state) => state.income);
   const deductionPct = useInvestmentStore((state) => state.deductionPct);
   const split = useInvestmentStore((state) => state.split);
@@ -103,11 +105,11 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
   ]);
 
   return (
-    <View ref={ref} collapsable={false} style={{ backgroundColor: "#0a0a0a", padding: 16, gap: 12, borderRadius: 16, overflow: 'hidden', opacity: 1 }}>
+    <View ref={ref} collapsable={false} style={{ backgroundColor: isDark ? "#0a0a0a" : "#ffffff", padding: 16, gap: 12, borderRadius: 16, overflow: 'hidden', opacity: 1 }}>
       {/* Header */}
       <View style={{ alignItems: "center", marginBottom: 8 }}>
         <Text style={{ color: "#22c55e", fontSize: 24, fontWeight: "bold" }}>My Investment Plan</Text>
-        <Text style={{ color: "#a3a3a3", fontSize: 14 }}>{horizonYears}-Year Projection</Text>
+        <Text style={{ color: isDark ? "#a3a3a3" : "#737373", fontSize: 14 }}>{horizonYears}-Year Projection</Text>
       </View>
 
       {/* Chart */}
@@ -116,11 +118,11 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
           <View style={{ flexDirection: "row", gap: 16, marginBottom: 8 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: "#22c55e" }} />
-              <Text style={{ color: "#a3a3a3", fontSize: 12 }}>Main ({derived.effectiveRate.toFixed(1)}%)</Text>
+              <Text style={{ color: isDark ? "#a3a3a3" : "#737373", fontSize: 12 }}>Main ({derived.effectiveRate.toFixed(1)}%)</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: "#fb923c" }} />
-              <Text style={{ color: "#a3a3a3", fontSize: 12 }}>Compare ({comparisonRate.toFixed(1)}%)</Text>
+              <Text style={{ color: isDark ? "#a3a3a3" : "#737373", fontSize: 12 }}>Compare ({comparisonRate.toFixed(1)}%)</Text>
             </View>
           </View>
         )}
@@ -129,12 +131,12 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
           width={Dimensions.get("window").width - 64}
           height={200}
           chartConfig={{
-            backgroundColor: "#171717",
-            backgroundGradientFrom: "#171717",
-            backgroundGradientTo: "#171717",
+            backgroundColor: isDark ? "#171717" : "#f9fafb",
+            backgroundGradientFrom: isDark ? "#171717" : "#f9fafb",
+            backgroundGradientTo: isDark ? "#171717" : "#f9fafb",
             decimalPlaces: 0,
             color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(163, 163, 163, ${opacity})`,
+            labelColor: (opacity = 1) => isDark ? `rgba(163, 163, 163, ${opacity})` : `rgba(64, 64, 64, ${opacity})`,
             style: { borderRadius: 16 },
             propsForDots: {
               r: "3",
@@ -143,7 +145,7 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
             },
             propsForBackgroundLines: {
               strokeDasharray: "",
-              stroke: "#1f2937",
+              stroke: isDark ? "#1f2937" : "#e5e7eb",
               strokeWidth: 1,
             },
           }}
@@ -165,10 +167,11 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
           label="Total Portfolio Value"
           value={formatCurrency(derived.growth.futureValue, currency.code, currency.symbol)}
           accent="#22c55e"
+          isDark={isDark}
         />
-        <Card label="Total Contributions" value={formatCurrency(derived.growth.principal, currency.code, currency.symbol)} />
-        <Card label="Total Interest Earned" value={formatCurrency(derived.growth.interest, currency.code, currency.symbol)} />
-        <Card label="Monthly Passive Income" value={formatCurrency(derived.passiveIncome, currency.code, currency.symbol)} />
+        <Card label="Total Contributions" value={formatCurrency(derived.growth.principal, currency.code, currency.symbol)} isDark={isDark} />
+        <Card label="Total Interest Earned" value={formatCurrency(derived.growth.interest, currency.code, currency.symbol)} isDark={isDark} />
+        <Card label="Monthly Passive Income" value={formatCurrency(derived.passiveIncome, currency.code, currency.symbol)} isDark={isDark} />
       </View>
 
       {/* Footer */}
@@ -178,10 +181,10 @@ export const ShareableCard = forwardRef<View>((props, ref) => {
           marginTop: 8,
           paddingTop: 12,
           borderTopWidth: 1,
-          borderTopColor: "#262626",
+          borderTopColor: isDark ? "#262626" : "#e5e7eb",
         }}
       >
-        <Text style={{ color: "#737373", fontSize: 12 }}>Generated with Investo</Text>
+        <Text style={{ color: isDark ? "#737373" : "#a3a3a3", fontSize: 12 }}>Generated with Investo</Text>
       </View>
     </View>
   );

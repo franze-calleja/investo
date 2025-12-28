@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { Pressable, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { useInvestmentStore } from "../src/state/useInvestmentStore";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -10,6 +11,9 @@ interface RateKeypadProps {
 }
 
 export function RateKeypad({ value, onChange }: RateKeypadProps) {
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
+  
   const handlePress = (num: string) => {
     if (num === "." && value.includes(".")) return;
     if (value.length >= 6) return; // Max 6 chars (e.g., "100.00")
@@ -57,12 +61,12 @@ export function RateKeypad({ value, onChange }: RateKeypadProps) {
                   else handlePress(btn);
                 }}
                 onLongPress={btn === "⌫" ? handleClear : undefined}
-                className="flex-1 bg-neutral-800 rounded-xl h-14 items-center justify-center active:bg-neutral-700"
+                className={`flex-1 rounded-xl h-14 items-center justify-center ${isDark ? 'bg-neutral-800 active:bg-neutral-700' : 'bg-neutral-200 active:bg-neutral-300'}`}
                 style={useAnimatedStyle(() => ({
                   transform: [{ scale: scale.value }]
                 }))}
               >
-                <Text className="text-white text-xl font-semibold">{btn}</Text>
+                <Text className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{btn}</Text>
               </AnimatedPressable>
             );
           })}

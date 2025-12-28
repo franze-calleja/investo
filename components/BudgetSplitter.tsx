@@ -19,6 +19,8 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function BudgetSplitter() {
   const formatCurrency = useCurrencyFormatter();
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
   const [showDeduction, setShowDeduction] = useState(false);
   const [showKeypad, setShowKeypad] = useState(false);
   const [showLumpSumKeypad, setShowLumpSumKeypad] = useState(false);
@@ -66,11 +68,11 @@ export function BudgetSplitter() {
   );
 
   return (
-    <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
+    <Animated.View className={`gap-5 p-4 rounded-2xl ${isDark ? 'bg-neutral-900' : 'bg-white'}`} entering={FadeIn.duration(300)}>
       <View className="flex-row items-center justify-between">
         <View className="gap-1">
-          <Text className="text-white text-xl font-semibold">Budget Splitter</Text>
-          <Text className="text-neutral-400 text-sm">Interactive 50/30/20 with live amounts</Text>
+          <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Budget Splitter</Text>
+          <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Interactive 50/30/20 with live amounts</Text>
         </View>
         <AnimatedPressable
           onPressIn={() => {
@@ -91,9 +93,9 @@ export function BudgetSplitter() {
         </AnimatedPressable>
       </View>
 
-      {/* Quick Preset Ratios */}
+      {/* Quick Presets */}
       <View className="gap-3">
-        <Text className="text-neutral-300 text-sm">Quick Presets</Text>
+        <Text className={`text-sm ${isDark ? 'text-neutral-300' : 'text-neutral-600'}`}>Quick Presets</Text>
         <View className="flex-row gap-2">
           <Pressable
             onPress={() => {
@@ -105,14 +107,14 @@ export function BudgetSplitter() {
             className={`flex-1 px-3 py-2 rounded-xl ${
               split.needsPct === 50 && split.wantsPct === 30 && split.savingsPct === 20
                 ? "bg-emerald-500"
-                : "bg-neutral-800"
+                : isDark ? "bg-neutral-800" : "bg-neutral-100"
             }`}
           >
             <Text
               className={`text-center text-sm font-semibold ${
                 split.needsPct === 50 && split.wantsPct === 30 && split.savingsPct === 20
                   ? "text-white"
-                  : "text-neutral-400"
+                  : isDark ? "text-neutral-400" : "text-neutral-600"
               }`}
             >
               50/30/20
@@ -128,14 +130,14 @@ export function BudgetSplitter() {
             className={`flex-1 px-3 py-2 rounded-xl ${
               split.needsPct === 60 && split.wantsPct === 20 && split.savingsPct === 20
                 ? "bg-emerald-500"
-                : "bg-neutral-800"
+                : isDark ? "bg-neutral-800" : "bg-neutral-100"
             }`}
           >
             <Text
               className={`text-center text-sm font-semibold ${
                 split.needsPct === 60 && split.wantsPct === 20 && split.savingsPct === 20
                   ? "text-white"
-                  : "text-neutral-400"
+                  : isDark ? "text-neutral-400" : "text-neutral-600"
               }`}
             >
               60/20/20
@@ -151,14 +153,14 @@ export function BudgetSplitter() {
             className={`flex-1 px-3 py-2 rounded-xl ${
               split.needsPct === 70 && split.wantsPct === 20 && split.savingsPct === 10
                 ? "bg-emerald-500"
-                : "bg-neutral-800"
+                : isDark ? "bg-neutral-800" : "bg-neutral-100"
             }`}
           >
             <Text
               className={`text-center text-sm font-semibold ${
                 split.needsPct === 70 && split.wantsPct === 20 && split.savingsPct === 10
                   ? "text-white"
-                  : "text-neutral-400"
+                  : isDark ? "text-neutral-400" : "text-neutral-600"
               }`}
             >
               70/20/10
@@ -168,7 +170,7 @@ export function BudgetSplitter() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-neutral-300">Monthly income</Text>
+        <Text className={isDark ? 'text-neutral-300' : 'text-neutral-600'}>Monthly income</Text>
         <AnimatedPressable
           onPressIn={() => {
             incomeScale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
@@ -178,12 +180,12 @@ export function BudgetSplitter() {
             incomeScale.value = withSpring(1, { damping: 15, stiffness: 400 });
           }}
           onPress={() => setShowKeypad(true)}
-          className="bg-neutral-800 rounded-xl px-4 py-3"
+          className={`rounded-xl px-4 py-3 ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}
           style={useAnimatedStyle(() => ({
             transform: [{ scale: incomeScale.value }]
           }))}
         >
-          <Text className="text-white text-lg">
+          <Text className={`text-lg ${isDark ? 'text-white' : 'text-neutral-900'}`}>
             {income ? formatCurrency(income) : "Tap to enter income"}
           </Text>
         </AnimatedPressable>
@@ -206,7 +208,7 @@ export function BudgetSplitter() {
 
       {/* Lump Sum */}
       <View className="gap-3">
-        <Text className="text-neutral-300">Starting lump sum (optional)</Text>
+        <Text className={isDark ? 'text-neutral-300' : 'text-neutral-600'}>Starting lump sum (optional)</Text>
         <AnimatedPressable
           onPressIn={() => {
             lumpSumScale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
@@ -216,27 +218,27 @@ export function BudgetSplitter() {
             lumpSumScale.value = withSpring(1, { damping: 15, stiffness: 400 });
           }}
           onPress={() => setShowLumpSumKeypad(true)}
-          className="bg-neutral-800 rounded-xl px-4 py-3"
+          className={`rounded-xl px-4 py-3 ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}
           style={useAnimatedStyle(() => ({
             transform: [{ scale: lumpSumScale.value }]
           }))}
         >
-          <Text className="text-white text-lg">
+          <Text className={`text-lg ${isDark ? 'text-white' : 'text-neutral-900'}`}>
             {lumpSum ? formatCurrency(lumpSum) : "Tap to add initial investment"}
           </Text>
         </AnimatedPressable>
       </View>
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-neutral-300">Deduction toggle</Text>
+        <Text className={isDark ? 'text-neutral-300' : 'text-neutral-600'}>Deduction toggle</Text>
         <Switch value={showDeduction} onValueChange={setShowDeduction} />
       </View>
 
       {showDeduction && (
         <View className="gap-2">
           <View className="flex-row justify-between items-center">
-            <Text className="text-neutral-300">Deduction %</Text>
-            <Text className="text-white font-semibold">{deductionPct}%</Text>
+            <Text className={isDark ? 'text-neutral-300' : 'text-neutral-600'}>Deduction %</Text>
+            <Text className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{deductionPct}%</Text>
           </View>
           <Slider
             value={deductionPct}
@@ -245,7 +247,7 @@ export function BudgetSplitter() {
             maximumValue={60}
             step={1}
             minimumTrackTintColor="#22c55e"
-            maximumTrackTintColor="#1f2937"
+            maximumTrackTintColor={isDark ? "#1f2937" : "#e5e7eb"}
             thumbTintColor="#22c55e"
           />
         </View>
@@ -255,8 +257,8 @@ export function BudgetSplitter() {
         {splitSummary.map((item) => (
           <View key={item.key} className="gap-2">
             <View className="flex-row justify-between items-center">
-              <Text className="text-white font-semibold">{item.label}</Text>
-              <Text className="text-white">{item.pct.toFixed(0)}% • {formatCurrency(item.amount)}</Text>
+              <Text className={`font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{item.label}</Text>
+              <Text className={isDark ? 'text-white' : 'text-neutral-900'}>{item.pct.toFixed(0)}% • {formatCurrency(item.amount)}</Text>
             </View>
             <Slider
               value={item.pct}
@@ -277,7 +279,7 @@ export function BudgetSplitter() {
               maximumValue={100}
               step={1}
               minimumTrackTintColor={item.color}
-              maximumTrackTintColor="#1f2937"
+              maximumTrackTintColor={isDark ? "#1f2937" : "#e5e7eb"}
               thumbTintColor={item.color}
             />
           </View>

@@ -53,6 +53,7 @@ type InvestmentState = {
   comparisonRate: number;
   currency: Currency;
   scenarios: Scenario[];
+  theme: 'light' | 'dark';
 };
 
 type InvestmentActions = {
@@ -72,6 +73,7 @@ type InvestmentActions = {
   loadScenario: (id: string) => void;
   deleteScenario: (id: string) => void;
   renameScenario: (id: string, newName: string) => void;
+  toggleTheme: () => void;
 };
 
 type InvestmentStore = InvestmentState & InvestmentActions;
@@ -127,6 +129,7 @@ export const useInvestmentStore = create<InvestmentStore>()(
       comparisonRate: 1,
       currency: CURRENCIES[0],
       scenarios: [],
+      theme: 'dark',
 
       setIncome: (value) => set({ income: Math.max(0, value) }),
       setDeductionPct: (value) => set({ deductionPct: clamp(value, 0, 60) }),
@@ -182,6 +185,10 @@ export const useInvestmentStore = create<InvestmentStore>()(
         scenarios: state.scenarios.map((s) => 
           s.id === id ? { ...s, name: newName } : s
         ),
+      })),
+      
+      toggleTheme: () => set((state) => ({
+        theme: state.theme === 'dark' ? 'light' : 'dark',
       })),
     }),
     {

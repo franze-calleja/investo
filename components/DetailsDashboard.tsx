@@ -18,8 +18,12 @@ export function DetailsDashboard() {
   const shareScale = useSharedValue(1);
   const currencyScale = useSharedValue(1);
   const scenariosScale = useSharedValue(1);
+  const themeScale = useSharedValue(1);
   const income = useInvestmentStore((state) => state.income);
   const currency = useInvestmentStore((state) => state.currency);
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
+  const toggleTheme = useInvestmentStore((state) => state.toggleTheme);
   const [showCurrencySelector, setShowCurrencySelector] = useState(false);
   const [showScenariosManager, setShowScenariosManager] = useState(false);
 
@@ -228,10 +232,10 @@ export function DetailsDashboard() {
   if (income === 0) {
     return (
       <Animated.View className="gap-3" entering={FadeIn.duration(300)}>
-        <Text className="text-xl font-semibold text-white">Details Dashboard</Text>
-        <View className="items-center gap-3 p-8 bg-neutral-900 rounded-2xl">
+        <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Details Dashboard</Text>
+        <View className={`items-center gap-3 p-8 rounded-2xl ${isDark ? 'bg-neutral-900' : 'bg-white'}`}>
           <Text className="text-lg text-center text-neutral-500">💰</Text>
-          <Text className="text-center text-neutral-400">Set your monthly income in the Setup tab to see your investment projections</Text>
+          <Text className={`text-center ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Set your monthly income in the Setup tab to see your investment projections</Text>
         </View>
       </Animated.View>
     );
@@ -240,8 +244,26 @@ export function DetailsDashboard() {
   return (
     <Animated.View className="gap-3" entering={FadeIn.duration(300)}>
       <View className="flex-row items-center justify-between">
-        <Text className="text-xl font-semibold text-white">Details Dashboard</Text>
+        <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Details Dashboard</Text>
         <View className="flex-row gap-2">
+          <AnimatedPressable
+            onPressIn={() => {
+              themeScale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+            }}
+            onPressOut={() => {
+              themeScale.value = withSpring(1, { damping: 15, stiffness: 400 });
+            }}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              toggleTheme();
+            }}
+            className={`flex-row items-center gap-2 px-3 py-2 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-200'}`}
+            style={useAnimatedStyle(() => ({
+              transform: [{ scale: themeScale.value }]
+            }))}
+          >
+            <Ionicons name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} size={18} color={isDark ? "#a3a3a3" : "#525252"} />
+          </AnimatedPressable>
           <AnimatedPressable
             onPressIn={() => {
               scenariosScale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
@@ -253,12 +275,12 @@ export function DetailsDashboard() {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setShowScenariosManager(true);
             }}
-            className="flex-row items-center gap-2 px-3 py-2 bg-neutral-800 rounded-xl"
+            className={`flex-row items-center gap-2 px-3 py-2 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-200'}`}
             style={useAnimatedStyle(() => ({
               transform: [{ scale: scenariosScale.value }]
             }))}
           >
-            <Ionicons name="file-tray-stacked-outline" size={18} color="#a3a3a3" />
+            <Ionicons name="file-tray-stacked-outline" size={18} color={isDark ? "#a3a3a3" : "#525252"} />
           </AnimatedPressable>
           <AnimatedPressable
             onPressIn={() => {
@@ -271,13 +293,13 @@ export function DetailsDashboard() {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               setShowCurrencySelector(true);
             }}
-            className="flex-row items-center gap-2 px-3 py-2 bg-neutral-800 rounded-xl"
+            className={`flex-row items-center gap-2 px-3 py-2 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-200'}`}
             style={useAnimatedStyle(() => ({
               transform: [{ scale: currencyScale.value }]
             }))}
           >
             <Text className="text-lg">{currency.symbol}</Text>
-            <Text className="text-xs text-neutral-400">{currency.code}</Text>
+            <Text className={`text-xs ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>{currency.code}</Text>
           </AnimatedPressable>
           <AnimatedPressable
             onPressIn={() => {

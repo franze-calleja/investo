@@ -9,6 +9,8 @@ import { RateKeypad } from "./RateKeypad";
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function MarketSelector() {
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
   const assetRate = useInvestmentStore((state) => state.assetRate);
   const manualRatePct = useInvestmentStore((state) => state.manualRatePct);
   const setAssetRate = useInvestmentStore((state) => state.setAssetRate);
@@ -43,11 +45,11 @@ export function MarketSelector() {
   }, [manualRate, data?.cagrPct, assetRate.cagrPct]);
 
   return (
-    <Animated.View className="gap-5 bg-neutral-900 p-4 rounded-2xl" entering={FadeIn.duration(300)}>
+    <Animated.View className={`gap-5 p-4 rounded-2xl ${isDark ? 'bg-neutral-900' : 'bg-white'}`} entering={FadeIn.duration(300)}>
       <View className="flex-row items-center justify-between">
         <View className="gap-1">
-          <Text className="text-white text-xl font-semibold">Market Selector</Text>
-          <Text className="text-neutral-400 text-sm">API-backed rate with manual override</Text>
+          <Text className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Market Selector</Text>
+          <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>API-backed rate with manual override</Text>
         </View>
         <AnimatedPressable
           onPressIn={() => {
@@ -67,21 +69,21 @@ export function MarketSelector() {
       </View>
 
       <View className="gap-3">
-        <Text className="text-neutral-300">Symbol</Text>
+        <Text className={isDark ? 'text-neutral-300' : 'text-neutral-600'}>Symbol</Text>
         <TextInput
           value={symbol}
           onChangeText={setSymbol}
           autoCapitalize="characters"
           placeholder="e.g., SPX or AAPL"
           placeholderTextColor="#6b7280"
-          className="bg-neutral-800 text-white rounded-xl px-4 py-3"
+          className={`rounded-xl px-4 py-3 ${isDark ? 'bg-neutral-800 text-white' : 'bg-neutral-100 text-neutral-900'}`}
         />
       </View>
 
       <View className="gap-3">
-        <Text className="text-neutral-300">Manual rate override (%)</Text>
-        <View className="bg-neutral-800 text-white rounded-xl px-4 py-3 min-h-[52px] justify-center">
-          <Text className={manualRate ? "text-white text-base" : "text-neutral-500 text-base"}>
+        <Text className={isDark ? 'text-neutral-300' : 'text-neutral-600'}>Manual rate override (%)</Text>
+        <View className={`rounded-xl px-4 py-3 min-h-[52px] justify-center ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+          <Text className={`text-base ${manualRate ? (isDark ? 'text-white' : 'text-neutral-900') : isDark ? 'text-neutral-500' : 'text-neutral-400'}`}>
             {manualRate || "Leave blank to use API/fallback"}
           </Text>
         </View>
@@ -91,9 +93,9 @@ export function MarketSelector() {
         <RateKeypad value={manualRate} onChange={setManualRate} />
       </View>
 
-      <View className="bg-neutral-800 rounded-2xl p-4 gap-2">
+      <View className={`rounded-2xl p-4 gap-2 ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
         <View className="flex-row items-center gap-2">
-          <Text className="text-white text-lg font-semibold">Rate</Text>
+          <Text className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>Rate</Text>
           {isLoading && (
             <Animated.View entering={FadeIn.duration(200)}>
               <Text className="text-amber-400 text-sm">Loading…</Text>
@@ -115,10 +117,10 @@ export function MarketSelector() {
             <Text className="text-3xl text-emerald-400 font-semibold">{effectiveRate}%</Text>
           </Animated.View>
         ) : (
-          <Text className="text-neutral-500">No rate available yet.</Text>
+          <Text className={isDark ? 'text-neutral-500' : 'text-neutral-400'}>No rate available yet.</Text>
         )}
         {data && (
-          <Text className="text-neutral-400 text-sm">
+          <Text className={`text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
             Source: {data.source} • symbol {data.symbol} • span ~
             {data.yearsUsed ? data.yearsUsed.toFixed(1) : "n/a"}y
           </Text>

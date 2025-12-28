@@ -19,6 +19,8 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0, tit
   const [value, setValue] = useState(initialValue.toString());
   const submitScale = useSharedValue(1);
   const currency = useInvestmentStore((state) => state.currency);
+  const theme = useInvestmentStore((state) => state.theme);
+  const isDark = theme === 'dark';
 
   const numValue = Number(value) || 0;
   const isVeryHigh = numValue > 500000;
@@ -52,19 +54,19 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0, tit
   return (
     <Modal visible={visible} transparent animationType="fade">
       <Animated.View className="justify-end flex-1 bg-black/50" entering={FadeIn.duration(10)}>
-        <Animated.View className="gap-6 p-6 bg-neutral-900 rounded-t-3xl" entering={SlideInDown.springify().damping(40).stiffness(150)}>
+        <Animated.View className={`gap-6 p-6 rounded-t-3xl ${isDark ? 'bg-neutral-900' : 'bg-white'}`} entering={SlideInDown.springify().damping(40).stiffness(150)}>
           {/* Header */}
           <View className="flex-row items-center justify-between">
-            <Text className="text-xl font-bold text-white">{title}</Text>
+            <Text className={`text-xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{title}</Text>
             <Pressable onPress={onClose}>
               <Ionicons name="close" size={28} color="#a3a3a3" />
             </Pressable>
           </View>
 
           {/* Display */}
-          <View className="p-6 bg-neutral-800 rounded-2xl">
-            <Text className="mb-2 text-sm text-neutral-400">Amount</Text>
-            <Text className="text-4xl font-bold text-white">
+          <View className={`p-6 rounded-2xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+            <Text className={`mb-2 text-sm ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>Amount</Text>
+            <Text className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
               {currency.symbol}{value ? Number(value).toLocaleString() : "0"}
             </Text>
             {isVeryHigh && (
@@ -92,17 +94,17 @@ export function IncomeKeypad({ visible, onClose, onSubmit, initialValue = 0, tit
                         scale.value = withSpring(1, { damping: 20, stiffness: 300 });
                       }}
                       onPress={() => handlePress(key)}
-                      className="items-center flex-1 py-5 bg-neutral-800 rounded-2xl active:bg-neutral-700"
+                      className={`items-center flex-1 py-5 rounded-2xl ${isDark ? 'bg-neutral-800 active:bg-neutral-700' : 'bg-neutral-200 active:bg-neutral-300'}`}
                       style={useAnimatedStyle(() => ({
                         transform: [{ scale: scale.value }]
                       }))}
                     >
                       {key === "backspace" ? (
-                        <Ionicons name="backspace-outline" size={24} color="#fff" />
+                        <Ionicons name="backspace-outline" size={24} color={isDark ? "#fff" : "#171717"} />
                       ) : key === "clear" ? (
                         <Text className="text-lg font-semibold text-red-400">C</Text>
                       ) : (
-                        <Text className="text-2xl font-semibold text-white">{key}</Text>
+                        <Text className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-neutral-900'}`}>{key}</Text>
                       )}
                     </AnimatedPressable>
                   );
