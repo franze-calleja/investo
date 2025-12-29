@@ -56,3 +56,33 @@ export function computePassiveIncome(futureValue: number, annualRatePct: number)
   const rAnnual = annualRatePct / 100;
   return futureValue * (rAnnual / 12);
 }
+
+export function computeRequiredMonthlyContribution(
+  targetAmount: number,
+  annualRatePct: number,
+  years: number,
+  currentSavings = 0
+) {
+  const rMonthly = annualRatePct / 100 / 12;
+  const months = years * 12;
+  
+  if (months === 0) return { monthly: 0, totalContributions: 0, interest: 0 };
+  
+  // Account for current savings growth
+  const futureValueOfSavings = currentSavings * Math.pow(1 + rMonthly, months);
+  const remainingTarget = Math.max(targetAmount - futureValueOfSavings, 0);
+  
+  if (remainingTarget <= 0) {
+    return { 
+      monthly: 0, 
+      totalContributions: currentSavings, 
+      interest: targetAmount - currentSavings 
+    };
+  }
+  
+  const monthly = remainingTarget * (rMonthly / (Math.pow(1 + rMonthly, months) - 1));
+  const totalContributions = monthly * months + currentSavings;
+  const interest = targetAmount - totalContributions;
+  
+  return { monthly, totalContributions, interest };
+}
